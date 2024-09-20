@@ -2069,6 +2069,14 @@ XmlSaxSerializer XmlWriter::serialize(const INVOICE_LINE &obj, const int indent)
             serializer.write(serialize(element), indent);
         }
 
+    if (!obj.subLines.empty())
+        for (auto &element: obj.subLines) {
+            serializer.write(serialize(element, indent + 1), indent);
+        }
+
+    if (obj.thirdPartyPayment)
+        serializer.write(serialize(*obj.thirdPartyPayment, indent + 1), indent);
+
     serializer.write(serialize(obj.itemInformation, obj.vatInformation), indent);
     serializer.write(serialize(obj.priceDetails), indent);
 
@@ -2212,4 +2220,207 @@ std::u8string XmlWriter::getOutput() const {
     if (pImpl)
         return pImpl->output;
     return {};
+}
+
+XmlSaxSerializer XmlWriter::serialize(const XMapping::SUB_INVOICE_LINE_PERIOD &obj, const int indent) {
+    XmlSaxSerializer serializer{};
+    serializer.write({.tag = obj.path, .content = u8""});
+
+    if (obj.startDate)
+        serializer.write(serialize(obj.startDate.value()), indent);
+    if (obj.endDate)
+        serializer.write(serialize(obj.endDate.value()), indent);
+
+    serializer.tagEnd();
+    return serializer;
+}
+
+XmlSaxSerializer XmlWriter::serialize(const SUB_INVOICE_LINE_ALLOWANCES &obj, const int indent) {
+    XmlSaxSerializer serializer{};
+    serializer.write({.tag = obj.path, .content = u8""});
+    serializer.write(serializeChargeIndicator(obj.chargeIndicator), indent);
+
+    serializer.write(serialize(obj.reasonCode), indent);
+    if (obj.reason)
+        serializer.write(serialize(obj.reason.value()), indent);
+    if (obj.percentage)
+        serializer.write(serialize(obj.percentage.value()), indent);
+
+    serializer.write(serialize(obj.amount), indent);
+    if (obj.baseAmount)
+        serializer.write(serialize(obj.baseAmount.value()), indent);
+
+    serializer.tagEnd();
+    return serializer;
+}
+
+XmlSaxSerializer XmlWriter::serialize(const SUB_INVOICE_LINE_CHARGES &obj, const int indent) {
+    XmlSaxSerializer serializer{};
+    serializer.write({.tag = obj.path, .content = u8""});
+    serializer.write(serializeChargeIndicator(obj.chargeIndicator), indent);
+
+    serializer.write(serialize(obj.reasonCode), indent);
+    if (obj.reason)
+        serializer.write(serialize(obj.reason.value()), indent);
+    if (obj.percentage)
+        serializer.write(serialize(obj.percentage.value()), indent);
+
+    serializer.write(serialize(obj.amount), indent);
+    if (obj.baseAmount)
+        serializer.write(serialize(obj.baseAmount.value()), indent);
+
+    serializer.tagEnd();
+    return serializer;
+}
+
+XmlSaxSerializer XmlWriter::serialize(const SUB_PRICE_DETAILS &obj, const int indent) {
+    XmlSaxSerializer serializer{};
+    serializer.write({.tag = obj.path, .content = u8""});
+
+    serializer.write(serialize(obj.netPrice), indent);
+    if (obj.discount)
+        serializer.write(serialize(obj.discount.value()), indent);
+    if (obj.grossPrice)
+        serializer.write(serialize(obj.grossPrice.value()), indent);
+    if (obj.quantity && obj.quantityCode)
+        serializer.write(serialize(obj.quantity.value(), obj.quantityCode.value()), indent);
+
+    serializer.tagEnd();
+    return serializer;
+}
+
+XmlSaxSerializer XmlWriter::serialize(const SUB_LINE_VAT_INFORMATION &obj, const int indent) {
+    XmlSaxSerializer serializer{};
+    serializer.write({.tag = obj.path, .content = u8""});
+
+    serializer.write(serialize(obj.categoryCode), indent);
+    if (obj.percentage)
+        serializer.write(serialize(obj.percentage.value()), indent);
+    serializer.write(serialize(VATTaxScheme(), indent + 1), indent);
+
+    serializer.tagEnd();
+    return serializer;
+}
+
+XmlSaxSerializer XmlWriter::serialize(const SUB_ITEM_ATTRIBUTES &obj, const int indent) {
+    XmlSaxSerializer serializer{};
+    serializer.write({.tag = obj.path, .content = u8""});
+
+    serializer.write(serialize(obj.name), indent);
+    serializer.write(serialize(obj.value), indent);
+
+    serializer.tagEnd();
+    return serializer;
+}
+
+XmlSaxSerializer XmlWriter::serialize(const SUB_ITEM_INFORMATION &obj, const SUB_LINE_VAT_INFORMATION &vat, const int indent) {
+    XmlSaxSerializer serializer{};
+    serializer.write({.tag = obj.path, .content = u8""});
+
+    serializer.write(serialize(obj.name), indent);
+    if (obj.description)
+        serializer.write(serialize(obj.description.value()), indent);
+    if (obj.sellerIdentifier)
+        serializer.write(serialize(obj.sellerIdentifier.value()), indent);
+    if (obj.buyerIdentifier)
+        serializer.write(serialize(obj.buyerIdentifier.value()), indent);
+    if (obj.standardIdentifier)
+        serializer.write(serialize(obj.standardIdentifier.value()), indent);
+
+    if (!obj.classificationIdentifier.empty())
+        for (auto &element: obj.classificationIdentifier) {
+            serializer.write(serialize(element, ItemClassificationIdentifierSchema(),
+                                       ItemClassificationIdentifierSchemaVersion()),
+                             indent);
+        }
+
+    if (obj.itemOriginCountry)
+        serializer.write(serialize(obj.itemOriginCountry.value()), indent);
+
+    if (!obj.attributes.empty())
+        for (auto &element: obj.attributes) {
+            serializer.write(serialize(element, indent + 1), indent);
+        }
+
+    XmlSaxSerializer innerSerializer{};
+    innerSerializer.write({.tag = vat.path, .content = u8""});
+
+    innerSerializer.write(serialize(vat.categoryCode), indent + 1);
+    if (vat.percentage)
+        innerSerializer.write(serialize(vat.percentage.value()), indent + 1);
+    innerSerializer.write(serialize(VATTaxScheme(), indent + 2), indent + 1);
+
+    innerSerializer.tagEnd();
+
+    serializer.write(innerSerializer, indent);
+    serializer.tagEnd();
+    return serializer;
+}
+
+XmlSaxSerializer XmlWriter::serialize(const SUB_INVOICE_LINE &obj, const int indent) {
+    XmlSaxSerializer serializer{};
+    serializer.write({.tag = obj.path, .content = u8""});
+
+    serializer.write(serialize(obj.identifier), indent);
+    if (obj.note)
+        serializer.write(serialize(obj.note.value()), indent);
+    if (obj.objectIdentifier)
+        serializer.write(serialize(obj.objectIdentifier.value(), InvoiceLineObjectIdentifierSchema()), indent);
+    serializer.write(serialize(obj.quantity, obj.quantityUnit), indent);
+    serializer.write(serialize(obj.netAmount), indent);
+    if (obj.documentReference)
+        serializer.write(serialize(obj.documentReference.value()), indent);
+    if (obj.buyerAccountingReference)
+        serializer.write(serialize(obj.buyerAccountingReference.value()), indent);
+    if (obj.period && obj.period.value().isValid())
+        serializer.write(serialize(*obj.period, indent + 1), indent);
+
+    if (!obj.allowances.empty())
+        for (auto &element: obj.allowances) {
+            serializer.write(serialize(element, indent + 1), indent);
+        }
+
+    if (!obj.charges.empty())
+        for (auto &element: obj.charges) {
+            serializer.write(serialize(element, indent + 1), indent);
+        }
+
+    serializer.write(serialize(obj.itemInformation, obj.vatInformation, indent + 1), indent);
+    serializer.write(serialize(obj.priceDetails, indent + 1), indent);
+
+    if (!obj.subLines.empty())
+        for (auto &element: obj.subLines) {
+            serializer.write(serialize(element,  indent + 2), indent + 1);
+        }
+
+    serializer.tagEnd();
+    return serializer;
+}
+
+XmlSaxSerializer XmlWriter::serialize(const THIRD_PARTY_PAYMENT &obj, const int indent) {
+    XmlSaxSerializer serializer{};
+    serializer.write({.tag = obj.path, .content = u8""});
+
+    serializer.write(serialize(obj.paymentType), indent + 1);
+    serializer.write(serialize(obj.amount), indent + 1);
+    serializer.write(serialize(obj.description), indent + 1);
+
+    serializer.tagEnd();
+    return serializer;
+}
+XmlSaxSerializer XmlWriter::serialize(const XMapping::ThirdPartyPaymentType &obj) {
+    XmlSaxSerializer serializer{};
+    serializer.writeSingle({.tag = obj.path, .content = obj.type.content});
+    return serializer;
+}
+XmlSaxSerializer XmlWriter::serialize(const XMapping::ThirdPartyPaymentAmount &obj) {
+    XmlSaxSerializer serializer{};
+    serializer.writeSingle({.tag = obj.path, .content = stdStringToU8Str(std::to_string(obj.type.content))});
+    return serializer;
+}
+
+XmlSaxSerializer XmlWriter::serialize(const XMapping::ThirdPartyPaymentDescription &obj) {
+    XmlSaxSerializer serializer{};
+    serializer.writeSingle({.tag = obj.path, .content = obj.type.content});
+    return serializer;
 }

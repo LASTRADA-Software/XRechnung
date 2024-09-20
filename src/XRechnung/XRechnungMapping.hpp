@@ -2425,6 +2425,179 @@ namespace XMapping {
         }
     };
 
+    // Die Art der Fremdforderung
+    struct ThirdPartyPaymentType final {
+        static constexpr std::u8string_view id{u8"BG-DEX-001"};
+        static constexpr std::u8string_view path{u8"cbc:"};
+        XDataTypes::Text type;
+
+        [[nodiscard]] bool isValid() const {
+            return !type.content.empty();
+        }
+    };
+
+    // Der Betrag der Fremdforderung.
+    // Anmerkung: Beträge aus Fremdforderung sind Bruttobeträge. Es erfolgt hierbei keine Umsatzsteueraufschlüsselung
+    struct ThirdPartyPaymentAmount final {
+        static constexpr std::u8string_view id{u8"BG-DEX-002"};
+        static constexpr std::u8string_view path{u8"cbc:"};
+        XDataTypes::Amount type;
+
+        [[nodiscard]] bool isValid() const {
+            return type.content > 0.0;
+        }
+    };
+
+    // Eine innerhalb der Rechnung eindeutige Beschreibung der Fremdforderung.
+    struct ThirdPartyPaymentDescription final {
+        static constexpr std::u8string_view id{u8"BG-DEX-003"};
+        static constexpr std::u8string_view path{u8"cbc:"};
+        XDataTypes::Text type;
+
+        [[nodiscard]] bool isValid() const {
+            return !type.content.empty();
+        }
+    };
+
+    struct THIRD_PARTY_PAYMENT final {
+        static constexpr std::u8string_view id{u8"BG-DEX-09"};
+        static constexpr std::u8string_view path{u8"cbc:"};
+
+        ThirdPartyPaymentType paymentType{};
+        ThirdPartyPaymentAmount amount{};
+        ThirdPartyPaymentDescription description{};
+
+        [[nodiscard]] bool isValid() const {
+            return paymentType.isValid() && amount.isValid() && description.isValid();
+        }
+    };
+
+    struct SUB_LINE_VAT_INFORMATION final {
+        static constexpr std::u8string_view id{u8"BG-DEX-06"};
+        static constexpr std::u8string_view path{u8"cac:ClassifiedTaxCategory"};
+
+        ItemVATCategoryCode categoryCode{};
+        std::optional<ItemVATRate> percentage{std::nullopt};
+
+        [[nodiscard]] bool isValid() const {
+            return categoryCode.isValid();
+        }
+    };
+
+    struct SUB_PRICE_DETAILS final {
+        static constexpr std::u8string_view id{u8"BG-DEX-07"};
+        static constexpr std::u8string_view path{u8"cac:Price"};
+
+        ItemNetPrice netPrice{};
+        std::optional<ItemPriceDiscount> discount{std::nullopt};
+        std::optional<ItemGrossPrice> grossPrice{std::nullopt};
+        std::optional<ItemBaseQuantity> quantity{std::nullopt};
+        std::optional<ItemBaseQuantityCode> quantityCode{std::nullopt};
+
+        [[nodiscard]] bool isValid() const {
+            return netPrice.isValid();
+        }
+    };
+
+    struct SUB_INVOICE_LINE_PERIOD final {
+        static constexpr std::u8string_view id{u8"BG-DEX-05"};
+        static constexpr std::u8string_view path{u8"cac:InvoicePeriod"};
+
+        std::optional<InvoiceLinePeriodStartDate> startDate{std::nullopt};
+        std::optional<InvoiceLinePeriodEndDate> endDate{std::nullopt};
+
+        [[nodiscard]] bool isValid() const {
+            const bool startDateValid = startDate.has_value() ? startDate.value().isValid() : false;
+            const bool endDateValid = endDate.has_value() ? endDate.value().isValid() : false;
+            return startDateValid && endDateValid;
+        }
+    };
+
+    struct SUB_ITEM_ATTRIBUTES final {
+        static constexpr std::u8string_view id{u8"BG-DEX-08"};
+        static constexpr std::u8string_view path{u8"cac:AdditionalItemProperty"};
+
+        ItemAttributeName name{};
+        ItemAttributeValue value{};
+
+        [[nodiscard]] bool isValid() const {
+            return name.isValid() && value.isValid();
+        }
+    };
+
+    struct SUB_ITEM_INFORMATION final {
+        static constexpr std::u8string_view id{u8"BG-DEX-02"};
+        static constexpr std::u8string_view path{u8"cac:Item"};
+
+        ItemName name{};
+        std::optional<ItemDescription> description{std::nullopt};
+        std::optional<ItemSellerIdentifier> sellerIdentifier{std::nullopt};
+        std::optional<ItemBuyerIdentifier> buyerIdentifier{std::nullopt};
+        std::optional<ItemStandardIdentifier> standardIdentifier{std::nullopt};
+        std::vector<ItemClassificationIdentifier> classificationIdentifier{};
+        std::optional<ItemOriginCountryCode> itemOriginCountry{std::nullopt};
+        std::vector<SUB_ITEM_ATTRIBUTES> attributes{};
+
+        [[nodiscard]] bool isValid() const {
+            return name.isValid();
+        }
+    };
+
+    struct SUB_INVOICE_LINE_ALLOWANCES final {
+        static constexpr std::u8string_view id{u8"BG-DEX-03"};
+        static constexpr std::u8string_view path{u8"cac:AllowanceCharge"};
+
+        bool chargeIndicator{false};
+        InvoiceLineAllowanceAmount amount{};
+        InvoiceLineAllowanceReasonCode reasonCode{};
+        std::optional<InvoiceLineAllowanceBaseAmount> baseAmount{std::nullopt};
+        std::optional<InvoiceLineAllowancePercentage> percentage{std::nullopt};
+        std::optional<InvoiceLineAllowanceReason> reason{std::nullopt};
+
+        [[nodiscard]] bool isValid() const {
+            return amount.isValid();
+        }
+    };
+
+    struct SUB_INVOICE_LINE_CHARGES final {
+        static constexpr std::u8string_view id{u8"BG-DEX-04"};
+        static constexpr std::u8string_view path{u8"cac:AllowanceCharge"};
+
+        bool chargeIndicator{true};
+        InvoiceLineChargeAmount amount{};
+        std::optional<InvoiceLineChargeBaseAmount> baseAmount{std::nullopt};
+        std::optional<InvoiceLineChargePercentage> percentage{std::nullopt};
+        std::optional<InvoiceLineChargeReason> reason{std::nullopt};
+        InvoiceLineChargeReasonCode reasonCode{};
+
+        [[nodiscard]] bool isValid() const {
+            return amount.isValid();
+        }
+    };
+
+    struct SUB_INVOICE_LINE final {
+        static constexpr std::u8string_view id{u8"BG-DEX-01"};
+        static constexpr std::u8string_view path{u8"cac:SubInvoiceLine"};
+
+        InvoiceLineIdentifier identifier{};
+        std::optional<InvoiceLineNote> note{std::nullopt};
+        std::optional<InvoiceLineObjectIdentifier> objectIdentifier{std::nullopt};
+
+        InvoiceLineQuantity quantity{};
+        InvoiceLineQuantityUnit quantityUnit{};
+        InvoiceLineNetAmount netAmount{};
+        std::optional<InvoiceLineOrderReference> documentReference{std::nullopt};
+        std::optional<InvoiceLineAccountingCost> buyerAccountingReference{std::nullopt};
+
+        SUB_ITEM_INFORMATION itemInformation{};
+        std::vector<SUB_INVOICE_LINE_ALLOWANCES> allowances{};
+        std::vector<SUB_INVOICE_LINE_CHARGES> charges{};
+        std::optional<SUB_INVOICE_LINE_PERIOD> period{};
+        SUB_LINE_VAT_INFORMATION vatInformation{};
+        SUB_PRICE_DETAILS priceDetails{};
+        std::vector<SUB_INVOICE_LINE> subLines{};
+    };
+
     struct INVOICE_LINE final {
         static constexpr std::u8string_view id{u8"BG-25"};
         static constexpr std::u8string_view path{u8"cac:InvoiceLine"};
@@ -2446,6 +2619,9 @@ namespace XMapping {
         PRICE_DETAILS priceDetails{};
         LINE_VAT_INFORMATION vatInformation{};
         ITEM_INFORMATION itemInformation{};
+
+        std::vector<SUB_INVOICE_LINE> subLines{};
+        std::optional<THIRD_PARTY_PAYMENT> thirdPartyPayment{};
 
         [[nodiscard]] bool isValid() const {
             return identifier.isValid() &&

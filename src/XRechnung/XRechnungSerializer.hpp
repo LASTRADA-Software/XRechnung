@@ -499,23 +499,47 @@ namespace XRechnung {
 
             XmlSaxSerializer serialize(const ADDITIONAL_SUPPORTING_DOCUMENTS &obj, int indent);
 
+            XmlSaxSerializer serialize(const XMapping::SUB_INVOICE_LINE_PERIOD &obj, int indent);
+
             XmlSaxSerializer serialize(const INVOICE_LINE_PERIOD &obj);
+
+            XmlSaxSerializer serialize(const SUB_INVOICE_LINE_ALLOWANCES &obj, int indent);
 
             XmlSaxSerializer serialize(const INVOICE_LINE_ALLOWANCES &obj);
 
+            XmlSaxSerializer serialize(const SUB_INVOICE_LINE_CHARGES &obj, int indent);
+
             XmlSaxSerializer serialize(const INVOICE_LINE_CHARGES &obj);
+
+            XmlSaxSerializer serialize(const SUB_PRICE_DETAILS &obj, int indent);
 
             XmlSaxSerializer serialize(const PRICE_DETAILS &obj);
 
+            XmlSaxSerializer serialize(const SUB_LINE_VAT_INFORMATION &obj, int indent);
+
             XmlSaxSerializer serialize(const LINE_VAT_INFORMATION &obj);
+
+            XmlSaxSerializer serialize(const SUB_ITEM_ATTRIBUTES &obj, int indent);
 
             XmlSaxSerializer serialize(const ITEM_ATTRIBUTES &obj);
 
             XmlSaxSerializer serialize(const ITEM_INFORMATION &obj);
 
+            XmlSaxSerializer serialize(const SUB_ITEM_INFORMATION &obj, const SUB_LINE_VAT_INFORMATION &vat, const int indent);
+
             XmlSaxSerializer serialize(const ITEM_INFORMATION &obj, const LINE_VAT_INFORMATION &vat);
 
+            XmlSaxSerializer serialize(const SUB_INVOICE_LINE &obj, int indent);
+
             XmlSaxSerializer serialize(const INVOICE_LINE &obj, int indent);
+
+            XmlSaxSerializer serialize(const ThirdPartyPaymentType &obj);
+
+            XmlSaxSerializer serialize(const ThirdPartyPaymentAmount &obj);
+
+            XmlSaxSerializer serialize(const ThirdPartyPaymentDescription &obj);
+
+            XmlSaxSerializer serialize(const THIRD_PARTY_PAYMENT &obj, int indent);
 
             std::u8string serialize(const XRechnung::Invoice &invoice);
 
