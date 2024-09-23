@@ -5,6 +5,9 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(src/XRechnung)
-add_subdirectory(src/tests)
 
-enable_testing()
+option(XRECHNUNG_TESTS "XRechnung: Enables building of unittests for XRechnung [default: ON]" ON)
+if(XRECHNUNG_TESTS)
+    enable_testing()
+    add_subdirectory(src/tests)
+endif()

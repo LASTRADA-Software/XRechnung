@@ -18,4 +18,4 @@ add_library(XRechnung STATIC
         XRechnungValidator.hpp
 )
 
-target_include_directories(XRechnung PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.. $<INSTALL_INTERFACE:include>)
+target_include_directories(XRechnung PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
