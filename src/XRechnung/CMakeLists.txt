@@ -1,6 +1,6 @@
 set(CMAKE_CXX_STANDARD 23)
 
-add_library(${PROJECT_NAME} STATIC
+add_library(XRechnung STATIC
         XRechnung.hpp
         XRechnung.cpp
         XRechnungAllowanceChargeCode.hpp
@@ -17,3 +17,5 @@ add_library(${PROJECT_NAME} STATIC
         XRechnungUtils.hpp
         XRechnungValidator.hpp
 )
+
+target_include_directories(XRechnung PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.. $<INSTALL_INTERFACE:include>)

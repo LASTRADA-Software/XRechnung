@@ -1,6 +1,7 @@
 #pragma once
 #include "XRechnungProp.hpp"
 
+#include <cstdint>
 #include <optional>
 #include <vector>
 
