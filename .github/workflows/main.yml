@@ -38,7 +38,8 @@
           run: |
             cmake --preset linux-clang-release
             cmake --build --preset linux-clang-release
-#
+            ctest --preset linux-clang-debug
+
 #        - name: validate generated xml files
 #          run: |
 #            java -jar ./validator_1_5_0/validationtool-1.5.0-standalone.jar
