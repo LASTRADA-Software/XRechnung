@@ -11,6 +11,12 @@
             distribution: 'temurin' # See 'Supported distributions' for available options
             java-version: '21'
 
+        - name: Install clang
+          run: |
+            wget https://apt.llvm.org/llvm.sh
+            chmod +x llvm.sh
+            sudo ./llvm.sh 18
+
         - name: download validator
           run: wget -O validator_1_5_0.zip https://github.com/itplr-kosit/validator/releases/download/v1.5.0/validator-1.5.0-distribution.zip
         - name: download validation schema
@@ -26,7 +32,7 @@
             unzip validator-configuration-xrechnung_3.0.2_2024-06-20.zip -d validator-configuration-xrechnung_3.0.2_2024-06-20
 
         - name: run Catch2 tests
-          run: ls -l
+          run: cmake --build --preset linux-clang-release
 #
 #        - name: validate generated xml files
 #          run: |
