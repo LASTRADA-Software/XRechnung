@@ -1,0 +1,32 @@
+  name: Validate generated XRechnung XML's
+  on: [push]
+  jobs:
+    validate:
+      runs-on: ubuntu-latest
+
+      steps:
+        - uses: actions/checkout@v4
+
+        - name: install java
+        - uses: actions/setup-java@v4
+          with:
+            distribution: 'temurin' # See 'Supported distributions' for available options
+            java-version: '21'
+
+        - name: download validator
+        - run: wget -O validator_1_5_0.zip https://github.com/itplr-kosit/validator/releases/download/v1.5.0/validator-1.5.0-distribution.zip
+        - run: wget https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/release-2024-06-20/validator-configuration-xrechnung_3.0.2_2024-06-20.zip
+
+        - name: extract & install validator
+        - run: tar -xf validator_1_5_0.zip
+        - run: tar -xf validator-configuration-xrechnung_3.0.2_2024-06-20.zip
+
+#        - name: run Catch2 tests
+#        - run: ls -l
+#
+#        - name: validate generated xml files
+#        - run: |
+#            java -jar ./validator_1_5_0/validationtool-1.5.0-standalone.jar
+#            -s /validator-configuration-xrechnung_3.0.2_2024-06-20/scenarios.xml
+#            -r /validator-configuration-xrechnung_3.0.2_2024-06-20
+#            -h invoice3.xml

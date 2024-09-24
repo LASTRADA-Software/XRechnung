@@ -8,17 +8,11 @@ fetchcontent_declare(
 
 FetchContent_MakeAvailable(Catch2)
 
-set(XRECHNUNG_SAXONHC_LIB "${CMAKE_SOURCE_DIR}/libraries/libsaxon-HEC-windows-12.5.0/libs/win/libsaxon-hec-12.5.0.lib" CACHE PATH "XRechnung: Path to the SaxonHEC library" FORCE)
-set(XRECHNUNG_SAXONHC_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/libraries/libsaxon-HEC-windows-12.5.0")
-
 enable_testing()
-
-include_directories(XRechnungTests PRIVATE ${XRECHNUNG_SAXONHC_INCLUDE_DIR})
 
 add_executable(XRechnungTests main.cpp
         minimalRequiredTests.cpp)
 
-target_link_libraries(XRechnungTests PRIVATE ${XRECHNUNG_SAXONHC_LIB})
 target_link_libraries(XRechnungTests PRIVATE Catch2::Catch2WithMain)
 target_link_libraries(XRechnungTests PRIVATE XRechnung)
 
