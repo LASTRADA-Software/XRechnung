@@ -2185,8 +2185,10 @@ std::u8string XmlWriter::serialize(const XRechnung::Invoice &invoice) {
         }
         XmlSaxSerializer taxTotalSerializer{};
         taxTotalSerializer.write({.tag = u8"cac:TaxTotal", .content = u8""});
-        taxTotalSerializer.write(serialize(LegalMonetaryTotalVATAmount{.type = totalTaxableAmount,
-                                                                       .currencyAttribute = {.currencyCode = invoice.getInvoiceCurrencyCode().currencyCode}}),
+        taxTotalSerializer.write(serialize(LegalMonetaryTotalVATAmount{
+                                         .type = {totalTaxableAmount},
+                                         .currencyAttribute = {.currencyCode = invoice.getInvoiceCurrencyCode().currencyCode},
+                                 }),
                                  indentaionLevel);
         // currently order matters so it is important that the total taxes comes as first child element
 
@@ -2390,7 +2392,7 @@ XmlSaxSerializer XmlWriter::serialize(const SUB_INVOICE_LINE &obj, const int ind
 
     if (!obj.subLines.empty())
         for (auto &element: obj.subLines) {
-            serializer.write(serialize(element,  indent + 2), indent + 1);
+            serializer.write(serialize(element, indent + 2), indent + 1);
         }
 
     serializer.tagEnd();

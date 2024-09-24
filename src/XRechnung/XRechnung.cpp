@@ -1,9 +1,9 @@
 #include "XRechnung.hpp"
-#include "XRechnungEASCode.hpp"
-#include "XRechnungMeasureUnit.hpp"
 #include "XRechnungAllowanceChargeCode.hpp"
 #include "XRechnungChargeReasonCode.hpp"
+#include "XRechnungEASCode.hpp"
 #include "XRechnungMapping.hpp"
+#include "XRechnungMeasureUnit.hpp"
 
 #include <algorithm>
 
@@ -16,7 +16,7 @@ void XRechnung::Invoice::setInvoiceNumber(std::u8string number) noexcept {
 }
 
 void XRechnung::Invoice::setIssueDate(std::u8string dateStr) noexcept {
-    invoiceIssueDate = InvoiceIssueDate{.type = std::move(dateStr)};
+    invoiceIssueDate = InvoiceIssueDate{.type = {std::move(dateStr)}};
 }
 
 void XRechnung::Invoice::setInvoiceTypeCode(const InvoiceType type) noexcept {
@@ -358,7 +358,7 @@ void XRechnung::Invoice::addCharges(const VATChargeProp &prop) {
         doc.percentage = DocLevelAllowanceChargePercentage{.type = {prop.percentage.value()}};
 
     doc.taxCategory = DocLevelAllowanceChargeTaxCategory{.type = prop.VATCategoryCode};
-    doc.taxRate = DocLevelAllowanceChargeTaxRate({.type = { prop.VATPercentage } });
+    doc.taxRate = DocLevelAllowanceChargeTaxRate({.type = {prop.VATPercentage}});
 
     if (prop.reason)
         doc.reason = DocLevelAllowanceChargeReason{.type = {prop.reason.value()}};
@@ -548,7 +548,7 @@ void XRechnung::setLineAllowanceAmount(INVOICE_LINE_ALLOWANCES &lineAllowance, c
 }
 
 void XRechnung::setLineAllowanceReason(INVOICE_LINE_ALLOWANCES &lineAllowance, const AllowanceChargeCode &reasonCode,
-                                       const std::u8string& reasonTxt) {
+                                       const std::u8string &reasonTxt) {
     lineAllowance.reasonCode = InvoiceLineAllowanceReasonCode{.type = {.id = u8"", .content = stdStringToU8Str(std::to_string(static_cast<int>(reasonCode)))}};
     if (!reasonTxt.empty())
         lineAllowance.reason = InvoiceLineAllowanceReason{.type = {.content = reasonTxt}};
@@ -568,7 +568,7 @@ void XRechnung::setLineChargeAmount(INVOICE_LINE_CHARGES &lineCharge, const doub
     lineCharge.amount = InvoiceLineChargeAmount{.type = {.content = amount}, .currencyAttribute = {.currencyCode = currencyCode}};
 }
 
-void XRechnung::setLineChargeReason(INVOICE_LINE_CHARGES &lineCharge, const ChargeReasonCode &reasonCode, const std::u8string& reasonTxt) {
+void XRechnung::setLineChargeReason(INVOICE_LINE_CHARGES &lineCharge, const ChargeReasonCode &reasonCode, const std::u8string &reasonTxt) {
     lineCharge.reasonCode = InvoiceLineChargeReasonCode{.type = {.id = u8"", .content = getChargeReasonCode(reasonCode)}};
     if (!reasonTxt.empty())
         lineCharge.reason = InvoiceLineChargeReason{.type = {.content = reasonTxt}};
