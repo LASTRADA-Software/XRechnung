@@ -17,9 +17,9 @@
           run: wget https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/release-2024-06-20/validator-configuration-xrechnung_3.0.2_2024-06-20.zip
 
         - name: extract validator
-          run: tar -xf validator_1_5_0.zip
+          run: unzip validator_1_5_0.zip
         - name: extract validator configuration
-          run: tar -xf validator-configuration-xrechnung_3.0.2_2024-06-20.zip
+          run: unzip validator-configuration-xrechnung_3.0.2_2024-06-20.zip
 
 #        - name: run Catch2 tests
 #          run: ls -l
