@@ -32,7 +32,7 @@
             unzip validator-configuration-xrechnung_3.0.2_2024-06-20.zip -d validator-configuration-xrechnung_3.0.2_2024-06-20
 
         - name: run Catch2 tests
-          run: cmake --build --preset linux-clang-release
+          run: cmake --build --preset=linux-clang-release
 #
 #        - name: validate generated xml files
 #          run: |
