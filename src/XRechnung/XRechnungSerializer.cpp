@@ -2177,7 +2177,7 @@ std::u8string XmlWriter::serialize(const XRechnung::Invoice &invoice) {
             serializer.write(serialize(element, indentaionLevel + 1), indentaionLevel);
         }
 
-    const auto vatBreakdown = invoice.getVatBreakdown();
+    auto vatBreakdown = invoice.getVatBreakdown();
     if (!vatBreakdown.empty()) {
         double totalTaxableAmount{0};
         for (const auto &element: vatBreakdown) {

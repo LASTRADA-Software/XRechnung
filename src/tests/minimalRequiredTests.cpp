@@ -7,6 +7,18 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <Saxon.C.API/XsltExecutable.h>
+#include <Saxon.C.API/Xslt30Processor.h>
+
+
+TEST_CASE("LoadXSLTValidationFile", "[XRechnung]")
+{
+    auto xsltProcessor = Xslt30Processor();
+    auto xsltExecutable = xsltProcessor.compileFromFile("../EN16931-UBL-validation.xslt");
+
+    REQUIRE(xsltExecutable);
+}
+
 TEST_CASE("MinimalValidInvoiceXML", "[XRechnung]")
 {
     auto obj = XRechnung::Invoice();
@@ -34,10 +46,12 @@ TEST_CASE("MinimalValidInvoiceXML", "[XRechnung]")
             .invoiceTotalAmountWithoutVAT = 4000,
             .invoiceTotalTax = 675,
             .invoiceTotalWithVAT = 4675,
-            .amountDueForPayment = 4675
+            .amountDueForPayment = 4675,
+            .currencyCode = XRechnungUtils::ISO4217_CurrencyCode::Euro
     });
 
     obj.addVATBreakdown({
+            .currencyCode = XRechnungUtils::ISO4217_CurrencyCode::Euro,
             .taxableAmount = 1500,
             .taxAmount = 375,
             .VATCategoryCode = XRechnungUtils::VATCategory::StandardRate,
@@ -45,6 +59,7 @@ TEST_CASE("MinimalValidInvoiceXML", "[XRechnung]")
     });
 
     obj.addVATBreakdown({
+            .currencyCode = XRechnungUtils::ISO4217_CurrencyCode::Euro,
             .taxableAmount = 2500,
             .taxAmount = 300,
             .VATCategoryCode = XRechnungUtils::VATCategory::StandardRate,
@@ -56,9 +71,10 @@ TEST_CASE("MinimalValidInvoiceXML", "[XRechnung]")
             .quantity = 1000,
             .quantityMeasureUnit = XRechnungUtils::MEASURE_UNIT::Each,
             .netAmount = 1000,
-            .priceDetail = { .netPrice=1 },
+            .priceDetail = { .netPrice=1, .currencyCode = XRechnungUtils::ISO4217_CurrencyCode::Euro },
             .VATInfo = { .VATCategoryCode = XRechnungUtils::VATCategory::StandardRate, .VATPercentage = 25},
-            .itemInfo = { .name = u8"Screw 8x8" }
+            .itemInfo = { .name = u8"Screw 8x8" },
+            .currencyCode = XRechnungUtils::ISO4217_CurrencyCode::Euro
     });
 
     obj.addInvoiceLine({
@@ -66,9 +82,10 @@ TEST_CASE("MinimalValidInvoiceXML", "[XRechnung]")
             .quantity = 100,
             .quantityMeasureUnit = XRechnungUtils::MEASURE_UNIT::Each,
             .netAmount = 500,
-            .priceDetail = {.netPrice = 5 },
+            .priceDetail = {.netPrice = 5, .currencyCode = XRechnungUtils::ISO4217_CurrencyCode::Euro },
             .VATInfo = {.VATCategoryCode = XRechnungUtils::VATCategory::StandardRate, .VATPercentage = 25},
-            .itemInfo = {.name = u8"Screw 16x8" }
+            .itemInfo = {.name = u8"Screw 16x8" },
+            .currencyCode = XRechnungUtils::ISO4217_CurrencyCode::Euro
     });
 
     obj.addInvoiceLine({
@@ -76,9 +93,10 @@ TEST_CASE("MinimalValidInvoiceXML", "[XRechnung]")
             .quantity = 500,
             .quantityMeasureUnit = XRechnungUtils::MEASURE_UNIT::Each,
             .netAmount = 2500,
-            .priceDetail = {.netPrice = 5 },
+            .priceDetail = {.netPrice = 5, .currencyCode = XRechnungUtils::ISO4217_CurrencyCode::Euro },
             .VATInfo = {.VATCategoryCode = XRechnungUtils::VATCategory::StandardRate, .VATPercentage = 12},
-            .itemInfo = {.name = u8"Cookies" }
+            .itemInfo = {.name = u8"Cookies" },
+            .currencyCode = XRechnungUtils::ISO4217_CurrencyCode::Euro
     });
 
     const auto xmlResult = XRechnung::Serializer::XmlWriter().serialize(obj);
