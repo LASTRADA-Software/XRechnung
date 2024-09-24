@@ -17,6 +17,9 @@
             chmod +x llvm.sh
             sudo ./llvm.sh 18
 
+        - name: Install ninja
+          run: sudo apt-get install ninja-build
+
         - name: download validator
           run: wget -O validator_1_5_0.zip https://github.com/itplr-kosit/validator/releases/download/v1.5.0/validator-1.5.0-distribution.zip
         - name: download validation schema
