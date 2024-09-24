@@ -11,9 +11,7 @@ namespace XRechnungUtils {
     template<typename T>
         requires std::is_same_v<T, std::u8string> ||
                  std::is_same_v<T, std::u8string_view>
-    std::string
-
-    u8StrToStdStr(const T &u8str) {
+    std::string u8StrToStdStr(const T &u8str) {
         return {reinterpret_cast<const char *>(u8str.data())};
     }
 

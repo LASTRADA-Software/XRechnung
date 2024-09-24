@@ -1,5 +1,6 @@
 #pragma once
-#include "XRechnungProp.hpp"
+#include <XRechnung/XRechnungProp.hpp>
+#include <XRechnung/XRechnungAllowanceChargeCode.hpp>
 
 #include <cstdint>
 #include <optional>

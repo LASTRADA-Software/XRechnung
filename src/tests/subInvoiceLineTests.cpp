@@ -10,7 +10,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 
-TEST_CASE("MinimalValidInvoiceXML", "[XRechnung]")
+TEST_CASE("SubInvoiceLineXml", "[XRechnung]")
 {
     auto obj = XRechnung::Invoice();
 
@@ -87,11 +87,31 @@ TEST_CASE("MinimalValidInvoiceXML", "[XRechnung]")
             .priceDetail = {.netPrice = 5, .currencyCode = XRechnungUtils::ISO4217_CurrencyCode::Euro },
             .VATInfo = {.VATCategoryCode = XRechnungUtils::VATCategory::StandardRate, .VATPercentage = 12},
             .itemInfo = {.name = u8"Cookies" },
-            .currencyCode = XRechnungUtils::ISO4217_CurrencyCode::Euro
+            .currencyCode = XRechnungUtils::ISO4217_CurrencyCode::Euro,
+            .sub_lines = {
+                {
+                        .id = u8"1",
+                        .quantity = 500,
+                        .quantityMeasureUnit = XRechnungUtils::MEASURE_UNIT::Each,
+                        .netAmount = 500,
+                        .priceDetail = {.netPrice = 1, .currencyCode = XRechnungUtils::ISO4217_CurrencyCode::Euro },
+                        .VATInfo = {.VATCategoryCode = XRechnungUtils::VATCategory::StandardRate, .VATPercentage = 12},
+                        .itemInfo = {.name = u8"CholcateChips" },
+                    },
+                {
+                        .id = u8"2",
+                        .quantity = 500,
+                        .quantityMeasureUnit = XRechnungUtils::MEASURE_UNIT::Each,
+                        .netAmount = 1000,
+                        .priceDetail = {.netPrice = 2, .currencyCode = XRechnungUtils::ISO4217_CurrencyCode::Euro },
+                        .VATInfo = {.VATCategoryCode = XRechnungUtils::VATCategory::StandardRate, .VATPercentage = 12},
+                        .itemInfo = {.name = u8"Butter" },
+                    }
+            }
     });
 
     const auto xmlResult = XRechnung::Serializer::XmlWriter().serialize(obj);
 
     REQUIRE_FALSE(xmlResult.empty());
-    write_to_file(xmlResult, "minimal");
+    write_to_file(xmlResult, "sub_invoice");
 }

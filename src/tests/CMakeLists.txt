@@ -11,7 +11,11 @@ FetchContent_MakeAvailable(Catch2)
 enable_testing()
 
 add_executable(XRechnungTests main.cpp
-        minimalRequiredTests.cpp)
+        minimalRequiredTests.cpp
+        utils.hpp
+        withDiscountsTests.cpp
+        withChargesTests.cpp
+        subInvoiceLineTests.cpp)
 
 target_link_libraries(XRechnungTests PRIVATE Catch2::Catch2WithMain)
 target_link_libraries(XRechnungTests PRIVATE XRechnung)

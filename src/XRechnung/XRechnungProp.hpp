@@ -147,6 +147,23 @@ namespace XRechnung {
         std::vector<ItemAttr> attributes{};
     };
 
+    struct SubInvoiceLine {
+        std::u8string id{};
+        std::optional<std::u8string> note{std::nullopt};
+        std::optional<std::u8string> objectId{std::nullopt};
+        double quantity{};
+        XRechnungUtils::MEASURE_UNIT quantityMeasureUnit{};
+        double netAmount{};
+        std::optional<std::u8string> orderReference{std::nullopt};
+        std::optional<std::u8string> buyerAccountingReference{std::nullopt};
+        std::optional<Period> period{std::nullopt};
+        std::vector<ChargeProp> allowances{};
+        std::vector<ChargeProp> charges{};
+        PriceInfo priceDetail{};
+        BaseVATProp VATInfo{};
+        ItemInfo itemInfo{};
+    };
+
     struct InvoiceLine {
         std::u8string id{};
         std::optional<std::u8string> note{std::nullopt};
@@ -163,6 +180,7 @@ namespace XRechnung {
         BaseVATProp VATInfo{};
         ItemInfo itemInfo{};
         XRechnungUtils::ISO4217_CurrencyCode currencyCode{};
+        std::vector<SubInvoiceLine> sub_lines{};
     };
 
     struct ElectronicAddress {

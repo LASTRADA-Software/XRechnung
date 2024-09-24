@@ -540,6 +540,27 @@ void XRechnung::Invoice::addInvoiceLine(const InvoiceLine &line) {
             obj.charges.push_back(std::move(charge));
         }
 
+    if (!line.sub_lines.empty())
+        for (const auto &subLine : line.sub_lines)
+        {
+            auto subInvoiceLine = SUB_INVOICE_LINE{
+                    .identifier = {.type = { subLine.id }},
+                    .quantity = {.type = {subLine.quantity}},
+                    .quantityUnit = { .type = {measureUnitCode, measureUnitCode}},
+                    .netAmount = {.type = {subLine.netAmount}},
+//                    .itemInformation = subLine.itemInfo,
+//                    .vatInformation = subLine.VATInfo,
+//                    .priceDetails = subLine.priceDetail
+            };
+
+            if (subLine.note)
+                obj.note = InvoiceLineNote{.type={subLine.note.value()}};
+
+            if (subLine.objectId)
+                obj.objectIdentifier = InvoiceLineObjectIdentifier{.type={subLine.objectId.value()}};
+            obj.subLines.push_back(subInvoiceLine);
+        }
+
     invoiceLine.push_back(std::move(obj));
 }
 
