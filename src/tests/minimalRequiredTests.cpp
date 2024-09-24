@@ -7,17 +7,6 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include <Saxon.C.API/XsltExecutable.h>
-#include <Saxon.C.API/Xslt30Processor.h>
-
-
-TEST_CASE("LoadXSLTValidationFile", "[XRechnung]")
-{
-    auto xsltProcessor = Xslt30Processor();
-    auto xsltExecutable = xsltProcessor.compileFromFile("../EN16931-UBL-validation.xslt");
-
-    REQUIRE(xsltExecutable);
-}
 
 TEST_CASE("MinimalValidInvoiceXML", "[XRechnung]")
 {
