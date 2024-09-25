@@ -1033,7 +1033,7 @@ namespace XMapping {
 
     struct PaymentMeansText final {
         static constexpr std::u8string_view id{u8"BT-82"};
-        static constexpr std::u8string_view path{u8"Name"};
+        static constexpr std::u8string_view path{u8"cbc:Name"};
         XDataTypes::Text type;
 
         [[nodiscard]] bool isValid() const {

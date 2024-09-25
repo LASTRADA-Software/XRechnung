@@ -475,6 +475,56 @@ XMapping::ITEM_INFORMATION createItemInformation(const XRechnung::ItemInfo &item
     return obj;
 }
 
+SUB_ITEM_INFORMATION createSubItemInformation(const XRechnung::ItemInfo &itemInfo)
+{
+    auto sub_invoice_item = SUB_ITEM_INFORMATION{.name={itemInfo.name}};
+    if (itemInfo.description)
+        sub_invoice_item.description = ItemDescription{.type={*itemInfo.description}};
+    if (itemInfo.sellerId)
+        sub_invoice_item.sellerIdentifier = ItemSellerIdentifier{.type={*itemInfo.sellerId}};
+    if (itemInfo.buyerId)
+        sub_invoice_item.buyerIdentifier = ItemBuyerIdentifier{.type={*itemInfo.buyerId}};
+    if (itemInfo.standardId)
+        sub_invoice_item.standardIdentifier = ItemStandardIdentifier{.type={*itemInfo.standardId}};
+    if (itemInfo.description)
+        sub_invoice_item.description = ItemDescription{.type={*itemInfo.description}};
+    if (itemInfo.description)
+        sub_invoice_item.description = ItemDescription{.type={*itemInfo.description}};
+    if (!itemInfo.classificationIds.empty())
+        for (const auto &elem: itemInfo.classificationIds) {
+            sub_invoice_item.classificationIdentifier.push_back({.type={elem}});
+        }
+    if (itemInfo.countryOfOrigin)
+        sub_invoice_item.itemOriginCountry = ItemOriginCountryCode{.type={*itemInfo.countryOfOrigin}};
+    if (!itemInfo.attributes.empty())
+        for (const auto &elem: itemInfo.attributes) {
+            sub_invoice_item.attributes.push_back({.name={elem.name}, .value={elem.value}});
+        }
+    return sub_invoice_item;
+}
+
+
+SUB_PRICE_DETAILS createSubPriceDetails(const XRechnung::PriceInfo &priceInfo, const XRechnungUtils::ISO4217_CurrencyCode currencyCode)
+{
+    const auto price_details_currency = priceInfo.currencyCode != ISO4217_CurrencyCode::Unknown ? priceInfo.currencyCode : currencyCode;
+    auto sub_price_details = SUB_PRICE_DETAILS{.netPrice={.type={priceInfo.netPrice}, .currencyAttribute={price_details_currency}}};
+    if (priceInfo.discount)
+        sub_price_details.discount = ItemPriceDiscount{.type={*priceInfo.discount},
+                                                       .currencyAttribute={.currencyCode=price_details_currency}};
+    if (priceInfo.grossPrice)
+        sub_price_details.grossPrice = ItemGrossPrice{.type={*priceInfo.grossPrice},
+                                                      .currencyAttribute={.currencyCode=price_details_currency}};
+    if (priceInfo.quantity)
+        sub_price_details.quantity = ItemBaseQuantity{.type={*priceInfo.quantity}};
+    if (priceInfo.quantityMeasureUnit)
+    {
+        const auto measureUnitCode = getMeasurementCode(*priceInfo.quantityMeasureUnit);
+        sub_price_details.quantityCode = ItemBaseQuantityCode{.type={.id=measureUnitCode, .content=measureUnitCode}};
+    }
+    return sub_price_details;
+}
+
+
 void XRechnung::Invoice::addInvoiceLine(const InvoiceLine &line) {
     auto obj = INVOICE_LINE();
 
@@ -547,10 +597,11 @@ void XRechnung::Invoice::addInvoiceLine(const InvoiceLine &line) {
                     .identifier = {.type = { subLine.id }},
                     .quantity = {.type = {subLine.quantity}},
                     .quantityUnit = { .type = {measureUnitCode, measureUnitCode}},
-                    .netAmount = {.type = {subLine.netAmount}},
-//                    .itemInformation = subLine.itemInfo,
-//                    .vatInformation = subLine.VATInfo,
-//                    .priceDetails = subLine.priceDetail
+                    .netAmount = {.type = {.content = subLine.netAmount}, .currencyAttribute = {line.currencyCode}},
+                    .itemInformation = createSubItemInformation(subLine.itemInfo),
+                    .vatInformation = {.categoryCode={.type=subLine.VATInfo.VATCategoryCode},
+                                       .percentage=ItemVATRate{.type={subLine.VATInfo.VATPercentage}}},
+                    .priceDetails = createSubPriceDetails(subLine.priceDetail, line.currencyCode)
             };
 
             if (subLine.note)

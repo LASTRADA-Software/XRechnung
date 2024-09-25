@@ -29,13 +29,12 @@ TEST_CASE("SubInvoiceLineXml", "[XRechnung]")
     obj.setBuyer({ u8"BuyerName", std::nullopt, u8"125856" }, { u8"buyer@google.com" , XRechnungUtils::EASCode::Electronic_Mail });
     obj.setBuyerAddress({ .addressLine1 = u8"Street", .city = u8"Town", .postalCode = u8"123456", .countryCode = XRechnungUtils::CountryCodes->at(u8"Deutschland").data() });
 
-    obj.setPaymentInstructions(XRechnungUtils::PaymentMeanCode::SEPA_credit_transfer, u8"DE75512108001245126199");
+    obj.setPaymentInstructions(XRechnungUtils::PaymentMeanCode::SEPA_credit_transfer);
     obj.addCreditTransfer(u8"DE75512108001245126199");
 
     obj.setTotalInfo({
             .sumInvoiceLineNetAmount = 4000,
             .invoiceTotalAmountWithoutVAT = 4000,
-            .invoiceTotalTax = 675,
             .invoiceTotalWithVAT = 4675,
             .amountDueForPayment = 4675,
             .currencyCode = XRechnungUtils::ISO4217_CurrencyCode::Euro

@@ -20,4 +20,5 @@ add_executable(XRechnungTests main.cpp
 target_link_libraries(XRechnungTests PRIVATE Catch2::Catch2WithMain)
 target_link_libraries(XRechnungTests PRIVATE XRechnung)
 
-file(COPY EN16931-UBL-validation.xslt DESTINATION "${CMAKE_BINARY_DIR}/src/tests")
+
+add_test(XRechnungTests ./XRechnungTests.exe)

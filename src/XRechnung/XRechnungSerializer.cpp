@@ -1715,10 +1715,6 @@ XmlSaxSerializer XmlWriter::serialize(const PAYMENT_INSTRUCTIONS &obj, const int
 
     if (obj.code.isValid())
         serializer.write(serialize(obj.code), indent);
-    if (obj.text)
-        serializer.write(serialize(obj.text.value()), indent);
-    if (obj.paymentId)
-        serializer.write(serialize(obj.paymentId.value()), indent);
 
     if (!obj.creditTransfer.empty())
         for (const auto &element: obj.creditTransfer) {
@@ -1730,6 +1726,10 @@ XmlSaxSerializer XmlWriter::serialize(const PAYMENT_INSTRUCTIONS &obj, const int
     if (obj.directDebit)
         serializer.write(serialize(obj.directDebit.value(), indent + 1), indent);
 
+    if (obj.text)
+        serializer.write(serialize(obj.text.value()), indent);
+    if (obj.paymentId)
+        serializer.write(serialize(obj.paymentId.value()), indent);
     serializer.tagEnd();
     return serializer;
 }
@@ -1799,20 +1799,21 @@ XmlSaxSerializer XmlWriter::serialize(const DOCUMENT_TOTALS &obj, const int inde
 
     if (obj.amountWithoutTax.isValid())
         serializer.write(serialize(obj.amountWithoutTax), indent);
-    if (obj.taxAmount)
-        serializer.write(serialize(obj.taxAmount.value()), indent);
-    if (obj.taxAmountCurrency)
-        serializer.write(serialize(obj.taxAmountCurrency.value()), indent);
     if (obj.amountWithTax.isValid())
         serializer.write(serialize(obj.amountWithTax), indent);
-    if (obj.prepaidAmount)
-        serializer.write(serialize(obj.prepaidAmount.value()), indent);
-    if (obj.roundingAmount)
-        serializer.write(serialize(obj.roundingAmount.value()), indent);
     if (obj.totalAllowanceAmount)
         serializer.write(serialize(obj.totalAllowanceAmount.value()), indent);
     if (obj.totalCharges)
         serializer.write(serialize(obj.totalCharges.value()), indent);
+
+//    currently it looks like that this is not 100% correct we need to check in future if this will be supported
+//    if (obj.taxAmount)
+//        serializer.write(serialize(obj.taxAmount.value()), indent);
+
+    if (obj.prepaidAmount)
+        serializer.write(serialize(obj.prepaidAmount.value()), indent);
+    if (obj.roundingAmount)
+        serializer.write(serialize(obj.roundingAmount.value()), indent);
     if (obj.paymentAmountDue.isValid())
         serializer.write(serialize(obj.paymentAmountDue), indent);
 
@@ -2069,6 +2070,9 @@ XmlSaxSerializer XmlWriter::serialize(const INVOICE_LINE &obj, const int indent)
             serializer.write(serialize(element), indent);
         }
 
+    serializer.write(serialize(obj.itemInformation, obj.vatInformation), indent);
+    serializer.write(serialize(obj.priceDetails), indent);
+
     if (!obj.subLines.empty())
         for (auto &element: obj.subLines) {
             serializer.write(serialize(element, indent + 1), indent);
@@ -2076,9 +2080,6 @@ XmlSaxSerializer XmlWriter::serialize(const INVOICE_LINE &obj, const int indent)
 
     if (obj.thirdPartyPayment)
         serializer.write(serialize(*obj.thirdPartyPayment, indent + 1), indent);
-
-    serializer.write(serialize(obj.itemInformation, obj.vatInformation), indent);
-    serializer.write(serialize(obj.priceDetails), indent);
 
     serializer.tagEnd();
     return serializer;
