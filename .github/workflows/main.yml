@@ -38,7 +38,7 @@
           run: |
             cmake --preset linux-clang-release
             cmake --build --preset linux-clang-release
-            ctest --preset linux-clang-debug
+            ctest --preset linux-clang-release
 
 #        - name: validate generated xml files
 #          run: |

@@ -21,4 +21,8 @@ target_link_libraries(XRechnungTests PRIVATE Catch2::Catch2WithMain)
 target_link_libraries(XRechnungTests PRIVATE XRechnung)
 
 
-add_test(XRechnungTests ./XRechnungTests.exe)
+if (win32)
+    add_test(XRechnungTests ./XRechnungTests.exe)
+else ()
+    add_test(XRechnungTests ./XRechnungTests)
+endif ()
