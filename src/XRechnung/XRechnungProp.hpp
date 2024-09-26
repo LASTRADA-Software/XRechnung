@@ -13,7 +13,8 @@ namespace XRechnungUtils {
     enum class VATCategory : int16_t;
     enum class EASCode : uint16_t;
     enum class MEASURE_UNIT : uint16_t;
-    enum class AllowanceChargeCode;
+    enum class AllowanceChargeCode : int;
+    enum class ChargeReasonCode : uint16_t;
 }// namespace XRechnungUtils
 
 namespace XRechnung {
@@ -70,7 +71,7 @@ namespace XRechnung {
         double VATPercentage{};
     };
 
-    struct ChargeProp {
+    struct AllowanceProp {
         bool chargeIndicator{false};
         double amount{};
         XRechnungUtils::AllowanceChargeCode reasonCode{};
@@ -79,7 +80,28 @@ namespace XRechnung {
         std::optional<std::u8string> reason{std::nullopt};
     };
 
+    struct ChargeProp {
+        bool chargeIndicator{false};
+        double amount{};
+        XRechnungUtils::ChargeReasonCode reasonCode{};
+        std::optional<double> baseAmount{std::nullopt};
+        std::optional<double> percentage{std::nullopt};
+        std::optional<std::u8string> reason{std::nullopt};
+    };
+
     struct VATChargeProp {
+        bool chargeIndicator{false};
+        double amount{};
+        XRechnungUtils::ChargeReasonCode reasonCode{};
+        std::optional<double> baseAmount{std::nullopt};
+        std::optional<double> percentage{std::nullopt};
+        std::optional<std::u8string> reason{std::nullopt};
+        XRechnungUtils::VATCategory VATCategoryCode{};
+        double VATPercentage{};
+        XRechnungUtils::ISO4217_CurrencyCode currencyCode{};
+    };
+
+    struct VATAllowanceProp {
         bool chargeIndicator{false};
         double amount{};
         XRechnungUtils::AllowanceChargeCode reasonCode{};
@@ -174,7 +196,7 @@ namespace XRechnung {
         std::optional<std::u8string> orderReference{std::nullopt};
         std::optional<std::u8string> buyerAccountingReference{std::nullopt};
         std::optional<Period> period{std::nullopt};
-        std::vector<ChargeProp> allowances{};
+        std::vector<AllowanceProp> allowances{};
         std::vector<ChargeProp> charges{};
         PriceInfo priceDetail{};
         BaseVATProp VATInfo{};

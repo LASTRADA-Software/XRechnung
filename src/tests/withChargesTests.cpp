@@ -35,19 +35,18 @@ TEST_CASE("GlobalCharge", "[XRechnung]")
     obj.addCreditTransfer(u8"DE75512108001245126199", u8"Jon Doe");
 
     obj.setTotalInfo({
-            .sumInvoiceLineNetAmount = 4800,
+            .sumInvoiceLineNetAmount = 4000,
             .sumCharges = 800,
             .invoiceTotalAmountWithoutVAT = 4800,
-            .invoiceTotalTax = 912,
-            .invoiceTotalWithVAT = 5712,
-            .amountDueForPayment = 5712,
+            .invoiceTotalTax = 675,
+            .invoiceTotalWithVAT = 5475,
+            .amountDueForPayment = 5475,
             .currencyCode = XRechnungUtils::ISO4217_CurrencyCode::Euro
     });
 
     obj.addCharges({
-            .chargeIndicator = true,
             .amount = 800,
-            .reasonCode = XRechnungUtils::AllowanceChargeCode::Carbon_footprint_charge,
+            .reasonCode = XRechnungUtils::ChargeReasonCode::Additional_Processing,
             .baseAmount = 4000,
             .percentage = 20,
             .VATCategoryCode = XRechnungUtils::VATCategory::StandardRate,
@@ -134,18 +133,18 @@ TEST_CASE("ItemCharge", "[XRechnung]")
     obj.addCreditTransfer(u8"DE75512108001245126199", u8"Jon Doe");
 
     obj.setTotalInfo({
-            .sumInvoiceLineNetAmount = 3500,
-            .invoiceTotalAmountWithoutVAT = 3500,
-            .invoiceTotalWithVAT = 4165,
-            .amountDueForPayment = 4165,
+            .sumInvoiceLineNetAmount = 4500,
+            .sumCharges=900,
+            .invoiceTotalAmountWithoutVAT = 5400,
+            .invoiceTotalWithVAT = 6135,
+            .amountDueForPayment = 6135,
             .currencyCode = XRechnungUtils::ISO4217_CurrencyCode::Euro
     });
 
-    obj.addAllowances({
-            .chargeIndicator = false,
-            .amount = 800,
-            .reasonCode = XRechnungUtils::AllowanceChargeCode::End_range_discount,
-            .baseAmount = 4000,
+    obj.addCharges({
+            .amount = 900,
+            .reasonCode = XRechnungUtils::ChargeReasonCode::Binding,
+            .baseAmount = 4500,
             .percentage = 20,
             .VATCategoryCode = XRechnungUtils::VATCategory::StandardRate,
             .VATPercentage = 19,
@@ -162,8 +161,8 @@ TEST_CASE("ItemCharge", "[XRechnung]")
 
     obj.addVATBreakdown({
             .currencyCode = XRechnungUtils::ISO4217_CurrencyCode::Euro,
-            .taxableAmount = 2500,
-            .taxAmount = 300,
+            .taxableAmount = 3000,
+            .taxAmount = 360,
             .VATCategoryCode = XRechnungUtils::VATCategory::StandardRate,
             .rate = 12
     });
@@ -194,12 +193,11 @@ TEST_CASE("ItemCharge", "[XRechnung]")
             .id = u8"3",
             .quantity = 500,
             .quantityMeasureUnit = XRechnungUtils::MEASURE_UNIT::Each,
-            .netAmount = 2500,
+            .netAmount = 3000,
             .charges ={
                     {
-                            .chargeIndicator=true,
                             .amount=500,
-                            .reasonCode=XRechnungUtils::AllowanceChargeCode::Carbon_footprint_charge,
+                            .reasonCode=XRechnungUtils::ChargeReasonCode::Certification,
                             .baseAmount=2500,
                             .percentage=20
                     }

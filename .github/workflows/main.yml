@@ -40,9 +40,15 @@
             cmake --build --preset linux-clang-release
             ctest --preset linux-clang-release
 
-#        - name: validate generated xml files
-#          run: |
-#            java -jar ./validator_1_5_0/validationtool-1.5.0-standalone.jar
-#            -s /validator-configuration-xrechnung_3.0.2_2024-06-20/scenarios.xml
-#            -r /validator-configuration-xrechnung_3.0.2_2024-06-20
-#            -h invoice3.xml
+        - name: copy report folder
+          run: cp -R out/build/linux-clang-release/src/reports reports
+
+        - name: validate generated xml files
+          run: |
+            java -jar ./validator_1_5_0/validationtool-1.5.0-standalone.jar
+            -s /validator-configuration-xrechnung_3.0.2_2024-06-20/scenarios.xml
+            -r /validator-configuration-xrechnung_3.0.2_2024-06-20
+            -h reports/xrechnung_invoice_minimal.xml 2>&1 | tee output.log
+
+        - name: check result
+          run: grep -q "Test successful" output.log

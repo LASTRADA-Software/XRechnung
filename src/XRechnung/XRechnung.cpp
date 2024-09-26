@@ -324,7 +324,7 @@ void XRechnung::Invoice::addPaymentDirectDebit(std::u8string mandateId, std::u8s
     paymentInstructions.directDebit = directDebit;
 }
 
-void XRechnung::Invoice::addAllowances(const VATChargeProp &prop) {
+void XRechnung::Invoice::addAllowances(const VATAllowanceProp &prop) {
     auto doc = DOCUMENT_ALLOWANCES();
     doc.chargeIndicator = prop.chargeIndicator;
     doc.amount = AllowanceChargeAmount{.type = {prop.amount}, .currencyAttribute = {prop.currencyCode}};
@@ -348,9 +348,11 @@ void XRechnung::Invoice::addAllowances(const VATChargeProp &prop) {
 
 void XRechnung::Invoice::addCharges(const VATChargeProp &prop) {
     auto doc = DOCUMENT_CHARGES();
-    doc.chargeIndicator = prop.chargeIndicator;
+    doc.chargeIndicator = true;
     doc.amount = DocLevelAllowanceChargeAmount{.type = {prop.amount}, .currencyAttribute = {prop.currencyCode}};
-    doc.reasonCode = DocLevelAllowanceChargeReasonCode{.type = {stdStringToU8Str(std::to_string(static_cast<int>(prop.reasonCode)))}};
+
+    const auto reasonCode = getChargeReasonCode(prop.reasonCode);
+    doc.reasonCode = DocLevelAllowanceChargeReasonCode{.type = { .content=reasonCode}};
 
     if (prop.baseAmount)
         doc.baseAmount = DocLevelAllowanceChargeBaseAmount{.type = {prop.baseAmount.value()}, .currencyAttribute = {prop.currencyCode}};
@@ -361,7 +363,10 @@ void XRechnung::Invoice::addCharges(const VATChargeProp &prop) {
     doc.taxRate = DocLevelAllowanceChargeTaxRate({.type = {prop.VATPercentage}});
 
     if (prop.reason)
-        doc.reason = DocLevelAllowanceChargeReason{.type = {prop.reason.value()}};
+    {
+        const auto chargeReason = prop.reason.value();
+        doc.reason = DocLevelAllowanceChargeReason{.type = { .content=chargeReason}};
+    }
 
     documentCharges.push_back(std::move(doc));
 }
@@ -558,7 +563,7 @@ void XRechnung::Invoice::addInvoiceLine(const InvoiceLine &line) {
     if (!line.allowances.empty())
         for (const auto &prop: line.allowances) {
             auto allow = INVOICE_LINE_ALLOWANCES();
-            allow.chargeIndicator = prop.chargeIndicator;
+            allow.chargeIndicator = false;
             allow.amount = InvoiceLineAllowanceAmount{.type = {prop.amount}, .currencyAttribute = {line.currencyCode}};
             const auto reasonCode = stdStringToU8Str(std::to_string(static_cast<int>(prop.reasonCode)));
             allow.reasonCode = InvoiceLineAllowanceReasonCode{.type = XDataTypes::Code{.id = reasonCode, .content = reasonCode}};
@@ -575,9 +580,9 @@ void XRechnung::Invoice::addInvoiceLine(const InvoiceLine &line) {
     if (!line.charges.empty())
         for (const auto &prop: line.charges) {
             auto charge = INVOICE_LINE_CHARGES();
-            charge.chargeIndicator = prop.chargeIndicator;
+            charge.chargeIndicator = true;
             charge.amount = InvoiceLineChargeAmount{.type = {prop.amount}, .currencyAttribute = {line.currencyCode}};
-            const auto reasonCode = stdStringToU8Str(std::to_string(static_cast<int>(prop.reasonCode)));
+            const auto reasonCode = getChargeReasonCode(prop.reasonCode);
             charge.reasonCode = InvoiceLineChargeReasonCode{.type = XDataTypes::Code{.id = reasonCode, .content = reasonCode}};
 
             if (prop.baseAmount)

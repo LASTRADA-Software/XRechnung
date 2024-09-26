@@ -425,7 +425,7 @@ ist die Angabe des BIC zwingend erforderlich.
      * @param prop.reason Der in Textform angegebene Grund für den `amount` (BT-92).
      * @param prop.reasonCode Der als Code angegebene Grund für den `amount` (BT-92).
      */
-        void addAllowances(const VATChargeProp &prop);
+        void addAllowances(const VATAllowanceProp &prop);
 
         /**
    * [Optional]

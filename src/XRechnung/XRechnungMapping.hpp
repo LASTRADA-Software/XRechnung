@@ -1215,7 +1215,7 @@ namespace XMapping {
 
     struct DocLevelAllowanceChargeAmount final {
         static constexpr std::u8string_view id{u8"BT-99"};
-        static constexpr std::u8string_view path{u8"cac:Amount"};
+        static constexpr std::u8string_view path{u8"cbc:Amount"};
         XDataTypes::Amount type;
         CurrencyAttribute currencyAttribute;
 
@@ -1226,7 +1226,7 @@ namespace XMapping {
 
     struct DocLevelAllowanceChargeBaseAmount final {
         static constexpr std::u8string_view id{u8"BT-100"};
-        static constexpr std::u8string_view path{u8"cac:BaseAmount"};
+        static constexpr std::u8string_view path{u8"cbc:BaseAmount"};
         XDataTypes::Amount type;
         CurrencyAttribute currencyAttribute;
 
@@ -1237,7 +1237,7 @@ namespace XMapping {
 
     struct DocLevelAllowanceChargePercentage final {
         static constexpr std::u8string_view id{u8"BT-101"};
-        static constexpr std::u8string_view path{u8"cac:MultiplierFactorNumeric"};
+        static constexpr std::u8string_view path{u8"cbc:MultiplierFactorNumeric"};
         XDataTypes::Percentage type;
 
         [[nodiscard]] bool isValid() const {
@@ -2253,7 +2253,7 @@ namespace XMapping {
         std::optional<DocLevelAllowanceChargeBaseAmount> baseAmount{std::nullopt};
         std::optional<DocLevelAllowanceChargePercentage> percentage{std::nullopt};
         DocLevelAllowanceChargeTaxCategory taxCategory{};
-        std::optional<DocLevelAllowanceChargeTaxRate> taxRate{std::nullopt};
+        DocLevelAllowanceChargeTaxRate taxRate{};
         std::optional<DocLevelAllowanceChargeReason> reason{std::nullopt};
         std::optional<DocLevelAllowanceChargeReasonCode> reasonCode{std::nullopt};
 

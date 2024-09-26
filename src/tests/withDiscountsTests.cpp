@@ -38,9 +38,9 @@ TEST_CASE("GlobalDiscount", "[XRechnung]")
             .sumInvoiceLineNetAmount = 4000,
             .sumAllowances = 800,
             .invoiceTotalAmountWithoutVAT = 3200,
-            .invoiceTotalTax = 608,
-            .invoiceTotalWithVAT = 3808,
-            .amountDueForPayment = 3808,
+            .invoiceTotalTax = 675,
+            .invoiceTotalWithVAT = 3875,
+            .amountDueForPayment = 3875,
             .currencyCode = XRechnungUtils::ISO4217_CurrencyCode::Euro
     });
 
@@ -134,10 +134,12 @@ TEST_CASE("ItemDiscount", "[XRechnung]")
     obj.addCreditTransfer(u8"DE75512108001245126199");
 
     obj.setTotalInfo({
-            .sumInvoiceLineNetAmount = 3500,
-            .invoiceTotalAmountWithoutVAT = 3500,
-            .invoiceTotalWithVAT = 4165,
-            .amountDueForPayment = 4165,
+            .sumInvoiceLineNetAmount = 3100,
+            .sumAllowances = 800,
+            .invoiceTotalAmountWithoutVAT = 2300,
+            .invoiceTotalTax = 615,
+            .invoiceTotalWithVAT = 2915,
+            .amountDueForPayment = 2915,
             .currencyCode = XRechnungUtils::ISO4217_CurrencyCode::Euro
     });
 
@@ -162,8 +164,8 @@ TEST_CASE("ItemDiscount", "[XRechnung]")
 
     obj.addVATBreakdown({
             .currencyCode = XRechnungUtils::ISO4217_CurrencyCode::Euro,
-            .taxableAmount = 2500,
-            .taxAmount = 300,
+            .taxableAmount = 2000,
+            .taxAmount = 240,
             .VATCategoryCode = XRechnungUtils::VATCategory::StandardRate,
             .rate = 12
     });
@@ -194,7 +196,7 @@ TEST_CASE("ItemDiscount", "[XRechnung]")
             .id = u8"3",
             .quantity = 500,
             .quantityMeasureUnit = XRechnungUtils::MEASURE_UNIT::Each,
-            .netAmount = 2500,
+            .netAmount = 2000,
             .allowances = {
                     {
                             .chargeIndicator=false,

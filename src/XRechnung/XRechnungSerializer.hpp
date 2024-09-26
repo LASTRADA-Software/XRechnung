@@ -11,6 +11,12 @@ namespace XRechnung {
     namespace Serializer {
         using XmlParameterList = std::unordered_map<std::u8string_view, std::u8string>;
 
+        template<typename T>
+        struct TaxParam {
+            T taxCode{};
+            VATCategoryRate taxRate{};
+        };
+
         struct XMLParam {
             std::u8string_view tag{};
             std::u8string_view content{};
@@ -540,6 +546,17 @@ namespace XRechnung {
             XmlSaxSerializer serialize(const ThirdPartyPaymentDescription &obj);
 
             XmlSaxSerializer serialize(const THIRD_PARTY_PAYMENT &obj, int indent);
+
+            template<typename T>
+            XmlSaxSerializer getTaxCategory(const TaxParam<T> &obj, int indent) {
+                XmlSaxSerializer taxSerializer{};
+                taxSerializer.write({.tag = u8"cac:TaxCategory", .content = u8""});
+                taxSerializer.write(serialize(obj.taxCode), indent);
+                taxSerializer.write(serialize(obj.taxRate), indent);
+                taxSerializer.write(serialize(XMapping::VATTaxScheme(), indent + 1), indent);
+                taxSerializer.tagEnd();
+                return taxSerializer;
+            }
 
             std::u8string serialize(const XRechnung::Invoice &invoice);
 

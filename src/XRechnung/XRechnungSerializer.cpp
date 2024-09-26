@@ -9,6 +9,7 @@ std::u8string serializeToXML(const XRechnung::Invoice &invoice) {
 
 using namespace XRechnung::Serializer;
 
+
 XmlSaxSerializer XmlWriter::serializeChargeIndicator(const bool chargeIndicator) {
     XmlSaxSerializer serializer{};
     serializer.writeSingle({.tag = u8"cbc:ChargeIndicator", .content = chargeIndicator ? u8"true" : u8"false"});
@@ -855,14 +856,18 @@ XmlSaxSerializer XmlWriter::serialize(const AllowanceChargeReasonCode &obj) {
 
 XmlSaxSerializer XmlWriter::serialize(const DocLevelAllowanceChargeAmount &obj) {
     XmlSaxSerializer serializer{};
-    serializer.writeSingle({.tag = obj.path, .content = stdStringToU8Str(std::format("{:.2f}", obj.type.content))});
+    XmlParameterList xmlParameterList{
+            {CurrencyAttribute::path, ISO4217_toStdStringView(obj.currencyAttribute.currencyCode).data()}};
+    serializer.writeSingle({.tag = obj.path, .content = stdStringToU8Str(std::format("{:.2f}", obj.type.content)), .params=xmlParameterList});
     return serializer;
 }
 
 
 XmlSaxSerializer XmlWriter::serialize(const DocLevelAllowanceChargeBaseAmount &obj) {
     XmlSaxSerializer serializer{};
-    serializer.writeSingle({.tag = obj.path, .content = stdStringToU8Str(std::format("{:.2f}", obj.type.content))});
+    XmlParameterList xmlParameterList{
+            {CurrencyAttribute::path, ISO4217_toStdStringView(obj.currencyAttribute.currencyCode).data()}};
+    serializer.writeSingle({.tag = obj.path, .content = stdStringToU8Str(std::format("{:.2f}", obj.type.content)), .params=xmlParameterList});
     return serializer;
 }
 
@@ -1769,24 +1774,20 @@ XmlSaxSerializer XmlWriter::serialize(const DOCUMENT_CHARGES &obj, const int ind
     serializer.write({.tag = obj.path, .content = u8""});
     serializer.write(serializeChargeIndicator(obj.chargeIndicator), indent);
 
-    serializer.write(serialize(obj.amount), 1);
-
-    if (obj.baseAmount)
-        serializer.write(serialize(obj.baseAmount.value()), indent);
+    if (obj.reasonCode)
+    {
+        serializer.write(serialize(obj.reasonCode.value()), indent);
+    }
+    if (obj.reason)
+        serializer.write(serialize(obj.reason.value()), indent);
     if (obj.percentage)
         serializer.write(serialize(obj.percentage.value()), indent);
 
-    XmlSaxSerializer taxSerializer{};
-    taxSerializer.write({.tag = u8"cac:TaxCategory", .content = u8""});
-    if (obj.taxRate)
-        taxSerializer.write(serialize(obj.taxRate.value()), indent + 1);
-    if (obj.reason)
-        taxSerializer.write(serialize(obj.reason.value()), indent + 1);
-    if (obj.reasonCode)
-        taxSerializer.write(serialize(obj.reasonCode.value()), indent + 1);
-    taxSerializer.tagEnd();
+    serializer.write(serialize(obj.amount), indent);
+    if (obj.baseAmount)
+        serializer.write(serialize(obj.baseAmount.value()), indent);
 
-    serializer.write(taxSerializer, indent + 1);
+    serializer.write(getTaxCategory(TaxParam<DocLevelAllowanceChargeTaxCategory>{.taxCode=obj.taxCategory, .taxRate={.type=obj.taxRate.type}}, indent + 1), indent);
     serializer.tagEnd();
     return serializer;
 }
