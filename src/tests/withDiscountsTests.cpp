@@ -134,12 +134,12 @@ TEST_CASE("ItemDiscount", "[XRechnung]")
     obj.addCreditTransfer(u8"DE75512108001245126199");
 
     obj.setTotalInfo({
-            .sumInvoiceLineNetAmount = 3100,
+            .sumInvoiceLineNetAmount = 3500,
             .sumAllowances = 800,
-            .invoiceTotalAmountWithoutVAT = 2300,
+            .invoiceTotalAmountWithoutVAT = 2700,
             .invoiceTotalTax = 615,
-            .invoiceTotalWithVAT = 2915,
-            .amountDueForPayment = 2915,
+            .invoiceTotalWithVAT = 3315,
+            .amountDueForPayment = 3315,
             .currencyCode = XRechnungUtils::ISO4217_CurrencyCode::Euro
     });
 

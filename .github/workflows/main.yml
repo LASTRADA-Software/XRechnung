@@ -43,8 +43,7 @@
         - name: copy report folder
           run: cp -R out/build/linux-clang-release/src/reports reports
 
-        - name: validate generated xml files
-          run: java -jar ./validator_1_5_0/validationtool-1.5.0-standalone.jar -s validator-configuration-xrechnung_3_0_2/scenarios.xml -r validator-configuration-xrechnung_3_0_2/ -h reports/xrechnung_invoice_minimal.xml 2>&1 | tee output.log
-
-        - name: check result
-          run: grep -q "Validation successful" output.log
+        - name: validate & check generated xml files
+          run: |
+            chmod +x validateGeneratedXmlFiles.sh
+            ./validateGeneratedXmlFiles.sh
