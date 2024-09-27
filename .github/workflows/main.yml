@@ -32,7 +32,7 @@
         - name: extract validator configuration
           run: |
             mkdir validator-configuration-xrechnung_3.0.2_2024-06-20
-            unzip validator-configuration-xrechnung_3.0.2_2024-06-20.zip -d validator-configuration-xrechnung_3.0.2_2024-06-20
+            unzip validator-configuration-xrechnung_3.0.2_2024-06-20.zip -d validator-configuration-xrechnung_3_0_2
 
         - name: run Catch2 tests
           run: |
@@ -44,7 +44,7 @@
           run: cp -R out/build/linux-clang-release/src/reports reports
 
         - name: validate generated xml files
-          run: java -jar ./validator_1_5_0/validationtool-1.5.0-standalone.jar -s /validator-configuration-xrechnung_3.0.2_2024-06-20/scenarios.xml -r /validator-configuration-xrechnung_3.0.2_2024-06-20 -h reports/xrechnung_invoice_minimal.xml 2>&1 | tee output.log
+          run: java -jar ./validator_1_5_0/validationtool-1.5.0-standalone.jar -s validator-configuration-xrechnung_3_0_2/scenarios.xml -r validator-configuration-xrechnung_3_0_2/ -h reports/xrechnung_invoice_minimal.xml 2>&1 | tee output.log
 
         - name: check result
-          run: grep -q "Test successful" output.log
+          run: grep -q "Validation successful" output.log

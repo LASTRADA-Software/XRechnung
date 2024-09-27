@@ -82,15 +82,25 @@ XmlSaxSerializer XmlWriter::serialize(const BuyerReference &obj) {
 
 
 XmlSaxSerializer XmlWriter::serialize(const ProjectReference &obj) {
+    XmlSaxSerializer innerSerializer{};
+    innerSerializer.writeSingle({.tag = obj.path, .content = obj.type.content});
+
     XmlSaxSerializer serializer{};
-    serializer.writeSingle({.tag = obj.path, .content = obj.type.content});
+    serializer.write({.tag = obj.outerPath, .content = u8""});
+    serializer.write(innerSerializer, 2);
+    serializer.tagEnd();
     return serializer;
 }
 
 
 XmlSaxSerializer XmlWriter::serialize(const ContractDocumentReference &obj) {
+    XmlSaxSerializer innerSerializer{};
+    innerSerializer.writeSingle({.tag = obj.path, .content = obj.type.content});
+
     XmlSaxSerializer serializer{};
-    serializer.writeSingle({.tag = obj.path, .content = obj.type.content});
+    serializer.write({.tag = obj.outerPath, .content = u8""});
+    serializer.write(innerSerializer, 2);
+    serializer.tagEnd();
     return serializer;
 }
 
@@ -2126,8 +2136,7 @@ std::u8string XmlWriter::serialize(const XRechnung::Invoice &invoice) {
         serializer.write(serialize(buyerReference), indentaionLevel);
     if (const auto taxPointDate = invoice.getTaxPointDate())
         serializer.write(serialize(taxPointDate.value()), indentaionLevel);
-    if (const auto projectReference = invoice.getProjectReference())
-        serializer.write(serialize(projectReference.value()), indentaionLevel);
+
     if (const auto contractReference = invoice.getContractReference())
         serializer.write(serialize(contractReference.value()), indentaionLevel);
     if (const auto orderReference = invoice.getOrderReference())
@@ -2146,6 +2155,8 @@ std::u8string XmlWriter::serialize(const XRechnung::Invoice &invoice) {
         serializer.write(serialize(buyerAccountingReference.value()), indentaionLevel);
     if (const auto paymentTerms = invoice.getPaymentTerms())
         serializer.write(serialize(paymentTerms.value()), indentaionLevel);
+    if (const auto projectReference = invoice.getProjectReference())
+        serializer.write(serialize(projectReference.value()), indentaionLevel);
 
     const auto precedingInvoiceReference = invoice.getPrecedingInvoiceReference();
     if (!precedingInvoiceReference.empty())

@@ -158,6 +158,7 @@ namespace XMapping {
 
     struct ProjectReference final {
         static constexpr std::u8string_view id{u8"BT-11"};
+        static constexpr std::u8string_view outerPath{u8"cac:ProjectReference"};
         static constexpr std::u8string_view path{u8"cbc:ID"};
         XDataTypes::DocumentReference type;
 
@@ -168,6 +169,7 @@ namespace XMapping {
 
     struct ContractDocumentReference final {
         static constexpr std::u8string_view id{u8"BT-12"};
+        static constexpr std::u8string_view outerPath{u8"cac:ContractDocumentReference"};
         static constexpr std::u8string_view path{u8"cbc:ID"};
         XDataTypes::DocumentReference type;
 

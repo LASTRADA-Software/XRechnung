@@ -20,7 +20,9 @@ TEST_CASE("MinimalValidInvoiceXML", "[XRechnung]")
     obj.setCurrencyCode(XRechnungUtils::ISO4217_CurrencyCode::Euro);
     obj.setDueDate(u8"2024-07-01");
 
+    obj.setProjectReference(u8"lorem ipsum dolor samit");
     obj.setBuyerReference(u8"04011000-12345-03");
+    obj.setContractReference(u8"85236974");
 
     obj.setSeller({ u8"SellerCompany", std::nullopt, u8"DE 123456789MVA" }, { u8"invoice@SellerCompany.com", XRechnungUtils::EASCode::Electronic_Mail });
     obj.setSellerContact(u8"SellerCompany", u8"05695325874", u8"info@SellerCompany.com");
