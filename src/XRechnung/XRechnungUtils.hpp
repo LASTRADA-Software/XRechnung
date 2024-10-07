@@ -7,6 +7,7 @@
 #include <type_traits>
 
 #if defined(_WIN32) || defined(_WIN64)
+#include <map>
 #include <windows.h>
 #endif
 
@@ -14,6 +15,10 @@ namespace XRechnungUtils {
     // Converts an std::string (codepage encoding) to UTF-8 string
     inline std::u8string stdStringToU8Str(const std::string& str)
     {
+        // no need for conversion
+        if (str.empty())
+            return {};
+
 #if defined(_WIN32) || defined(_WIN64)
         // Converts from codepage encoding to UTF-8 via UTF-16 encoding.
 
@@ -104,4 +109,29 @@ namespace XRechnungUtils {
     static constexpr std::array<std::u8string_view, 9>
             allowedCodes{
                     u8"S", u8"Z", u8"E", u8"AE", u8"K", u8"G", u8"O", u8"L", u8"M" };
-}// namespace XRechnungUtils
+
+    static const std::map<char, std::string> escapeChar {
+            {'<', "&lt;"},
+            {'>', "&gt;"},
+            {'&', "&amp;"},
+            {'"', "&quot;"},
+            {'\'', "&apos;"},
+    };
+
+    inline std::string escapeSpecialChars(const std::string &txt) {
+        if (txt.empty())
+            return txt;
+
+        std::string res{};
+        for (const auto chr : txt) {
+            if (escapeChar.contains(chr)) {
+                res += escapeChar.at(chr);
+            }
+            else {
+                res.push_back(chr);
+            }
+        }
+
+        return res;
+    }
+};// namespace XRechnungUtils

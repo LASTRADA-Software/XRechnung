@@ -15,7 +15,8 @@ add_executable(XRechnungTests main.cpp
         utils.hpp
         withDiscountsTests.cpp
         withChargesTests.cpp
-        subInvoiceLineTests.cpp)
+        subInvoiceLineTests.cpp
+        utilsTests.cpp)
 
 target_link_libraries(XRechnungTests PRIVATE Catch2::Catch2WithMain)
 target_link_libraries(XRechnungTests PRIVATE XRechnung)
