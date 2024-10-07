@@ -38,7 +38,7 @@
           run: |
             cmake --preset linux-clang-release
             cmake --build --preset linux-clang-release
-            ctest --preset linux-clang-release
+            ctest --preset linux-clang-release -VV
 
         - name: copy report folder
           run: cp -R out/build/linux-clang-release/src/reports reports

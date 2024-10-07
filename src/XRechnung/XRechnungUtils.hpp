@@ -2,13 +2,13 @@
 
 #include <array>
 #include <map>
+#include <cstdint>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <type_traits>
 
 #if defined(_WIN32) || defined(_WIN64)
-#include <map>
 #include <windows.h>
 #endif
 
