@@ -1,8 +1,9 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
-#include <map>
 #include <cstdint>
+#include <map>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -14,8 +15,7 @@
 
 namespace XRechnungUtils {
     // Converts an std::string (codepage encoding) to UTF-8 string
-    inline std::u8string stdStringToU8Str(const std::string& str)
-    {
+    inline std::u8string stdStringToU8Str(const std::string &str) {
         // no need for conversion
         if (str.empty())
             return {};
@@ -23,13 +23,11 @@ namespace XRechnungUtils {
 #if defined(_WIN32) || defined(_WIN64)
         // Converts from codepage encoding to UTF-8 via UTF-16 encoding.
 
-        auto const EnsureSuccess = [](int result)
-        {
+        auto const EnsureSuccess = [](int result) {
             if (result != 0)
                 return;
 
-            switch (GetLastError())
-            {
+            switch (GetLastError()) {
                 case ERROR_INSUFFICIENT_BUFFER:
                     throw std::runtime_error("Insufficient buffer");
                 case ERROR_NO_UNICODE_TRANSLATION:
@@ -57,20 +55,20 @@ namespace XRechnungUtils {
         std::u8string utf8(utf8SizeNeeded, 0);
 
         // Convert the UTF-16 string to UTF-8
-        EnsureSuccess(WideCharToMultiByte(CP_UTF8, 0, utf16.data(), utf16.size(), reinterpret_cast<char*>(utf8.data()), utf8SizeNeeded, nullptr, nullptr));
+        EnsureSuccess(WideCharToMultiByte(CP_UTF8, 0, utf16.data(), utf16.size(), reinterpret_cast<char *>(utf8.data()), utf8SizeNeeded, nullptr, nullptr));
 
         return utf8;
 #else
         // TODO
-        return { reinterpret_cast<const char8_t*>(str.data()), str.size() };
+        return {reinterpret_cast<const char8_t *>(str.data()), str.size()};
 #endif
     }
 
     template<typename T>
         requires std::is_same_v<T, std::u8string> ||
                  std::is_same_v<T, std::u8string_view>
-    std::string u8StrToStdStr(const T& u8str) {
-        return { reinterpret_cast<const char*>(u8str.data()) };
+    std::string u8StrToStdStr(const T &u8str) {
+        return {reinterpret_cast<const char *>(u8str.data())};
     }
 
     // UNTDID 1001
@@ -109,9 +107,9 @@ namespace XRechnungUtils {
 
     static constexpr std::array<std::u8string_view, 9>
             allowedCodes{
-                    u8"S", u8"Z", u8"E", u8"AE", u8"K", u8"G", u8"O", u8"L", u8"M" };
+                    u8"S", u8"Z", u8"E", u8"AE", u8"K", u8"G", u8"O", u8"L", u8"M"};
 
-    static const std::map<char, std::string> escapeChar {
+    static const std::map<char, std::string> escapeChar{
             {'<', "&lt;"},
             {'>', "&gt;"},
             {'&', "&amp;"},
@@ -124,15 +122,25 @@ namespace XRechnungUtils {
             return txt;
 
         std::string res{};
-        for (const auto chr : txt) {
+        for (const auto chr: txt) {
             if (escapeChar.contains(chr)) {
                 res += escapeChar.at(chr);
-            }
-            else {
+            } else {
                 res.push_back(chr);
             }
         }
 
         return res;
     }
+
+    template<std::size_t N>
+    struct StringLiteralU8 {
+        constexpr StringLiteralU8(const char8_t (&str)[N]) : value{} {
+            std::copy_n(str, N, value);
+        }
+
+        char8_t value[N];// NOLINT
+    };
+
+
 };// namespace XRechnungUtils

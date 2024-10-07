@@ -57,43 +57,92 @@ namespace XMapping {
         };
     }// namespace XDataTypes
 
-    using namespace XRechnungUtils;
+    template<typename T>
+    inline bool checkValid(const T &t) {
+        return !t.content.empty();
+    }
 
+    template<typename T>
+        requires std::same_as<T, XDataTypes::Percentage> || std::same_as<T, XRechnungUtils::VATCategory> ||
+                 std::same_as<T, XDataTypes::Quantity>
+    inline bool checkValid(const T &t) {
+        return true;
+    }
+
+    template<>
+    inline bool checkValid(const XRechnungUtils::InvoiceType &t) {
+        return t != XRechnungUtils::InvoiceType::Undefined;
+    }
+
+    template<XRechnungUtils::StringLiteralU8 lit>
+    struct Id {
+        static constexpr std::u8string_view id{lit.value};
+    };
+    template<typename T>
+    concept concept_Id = requires(T t) { T::id; };
+
+    template<XRechnungUtils::StringLiteralU8 lit>
+    struct Attribute {
+        static constexpr std::u8string_view attribute{lit.value};
+    };
+    template<typename T>
+    concept concept_Attribute = requires(T t) { T::attribute; };
+
+    template<XRechnungUtils::StringLiteralU8 lit>
+    struct Path {
+        static constexpr std::u8string_view path{lit.value};
+    };
+    template<typename T>
+    concept concept_Path = requires(T t) { T::path; };
+
+    template<XRechnungUtils::StringLiteralU8 lit>
+    struct OuterPath {
+        static constexpr std::u8string_view outerPath{lit.value};
+    };
+    template<typename T>
+    concept concept_OuterPath = requires(T t) { T::outerPath; };
+
+    template<typename... Ts>
+    struct entry final {};
+
+    template<concept_Id Id, concept_Path Path, typename XDataType>
+    struct entry<Id, Path, XDataType> final {
+        static constexpr std::u8string_view id{Id::id};
+        static constexpr std::u8string_view path{Path::path};
+        XDataType type;
+
+        [[nodiscard]] bool isValid() const { return checkValid(type); }
+    };
+
+    template<concept_Id Id, concept_Attribute Attribute, typename XDataType>
+    struct entry<Id, Attribute, XDataType> final {
+        static constexpr std::u8string_view id{Id::id};
+        static constexpr std::u8string_view attribute{Attribute::attribute};
+        XDataType type;
+
+        [[nodiscard]] bool isValid() const { return checkValid(type); }
+    };
+
+    template<concept_Id Id, concept_OuterPath OuterPath, concept_Path Path, typename XDataType>
+    struct entry<Id, OuterPath, Path, XDataType> final {
+        static constexpr std::u8string_view id{Id::id};
+        static constexpr std::u8string_view outerPath{OuterPath::outerPath};
+        static constexpr std::u8string_view path{Path::path};
+        XDataType type;
+
+        [[nodiscard]] bool isValid() const { return checkValid(type); }
+    };
+
+
+    using namespace XRechnungUtils;
     struct CurrencyAttribute {
         static constexpr std::u8string_view path{u8"currencyID"};
         ISO4217_CurrencyCode currencyCode{ISO4217_CurrencyCode::Unknown};
     };
 
-    struct InvoiceNumber final {
-        static constexpr std::u8string_view id{u8"BT-1"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::Identifier type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct InvoiceIssueDate final {
-        static constexpr std::u8string_view id{u8"BT-2"};
-        static constexpr std::u8string_view path{u8"cbc:IssueDate"};
-        XDataTypes::Date type;
-
-        [[nodiscard]] bool isValid() const {
-            // maybe add date validation?
-            return !type.content.empty();
-        }
-    };
-
-    struct InvoiceTypeCode final {
-        static constexpr std::u8string_view id{u8"BT-3"};
-        static constexpr std::u8string_view path{u8"cbc:InvoiceTypeCode"};
-        InvoiceType type{InvoiceType::Undefined};
-
-        [[nodiscard]] bool isValid() const {
-            return type != InvoiceType::Undefined;
-        }
-    };
+    using InvoiceNumber = entry<Id<u8"BT-1">, Path<u8"cbc:ID">, XDataTypes::Identifier>;
+    using InvoiceIssueDate = entry<Id<u8"BT-2">, Path<u8"cbc:IssueDate">, XDataTypes::Date>;
+    using InvoiceTypeCode = entry<Id<u8"BT-3">, Path<u8"cbc:InvoiceTypeCode">, XRechnungUtils::InvoiceType>;
 
     struct DocumentCurrencyCode final {
         static constexpr std::u8string_view id{u8"BT-5"};
@@ -106,708 +155,147 @@ namespace XMapping {
         }
     };
 
-    struct TaxCurrencyCode final {
-        static constexpr std::u8string_view id{u8"BT-6"};
-        static constexpr std::u8string_view path{u8"cbc:TaxCurrencyCode"};
-        XDataTypes::Code type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct TaxPointDate final {
-        static constexpr std::u8string_view id{u8"BT-7"};
-        static constexpr std::u8string_view path{u8"cbc:TaxPointDate"};
-        XDataTypes::Date type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct InvoicePeriodDescriptionCode final {
-        static constexpr std::u8string_view id{u8"BT-8"};
-        static constexpr std::u8string_view path{u8"cbc:DescriptionCode"};
-        PointDateCode type{PointDateCode::Undefined};
-
-        [[nodiscard]] bool isValid() const {
-            return type != PointDateCode::Undefined;
-        }
-    };
-
-    struct DueDate final {
-        static constexpr std::u8string_view id{u8"BT-9"};
-        static constexpr std::u8string_view path{u8"cbc:DueDate"};
-        XDataTypes::Date type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct BuyerReference final {
-        static constexpr std::u8string_view id{u8"BT-10"};
-        static constexpr std::u8string_view path{u8"cbc:BuyerReference"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct ProjectReference final {
-        static constexpr std::u8string_view id{u8"BT-11"};
-        static constexpr std::u8string_view outerPath{u8"cac:ProjectReference"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::DocumentReference type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct ContractDocumentReference final {
-        static constexpr std::u8string_view id{u8"BT-12"};
-        static constexpr std::u8string_view outerPath{u8"cac:ContractDocumentReference"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::DocumentReference type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct OrderReference final {
-        static constexpr std::u8string_view id{u8"BT-13"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::DocumentReference type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct OrderReferenceSalesOrderID final {
-        static constexpr std::u8string_view id{u8"BT-14"};
-        static constexpr std::u8string_view path{u8"cbc:SalesOrderID"};
-        XDataTypes::DocumentReference type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct ReceiptDocumentReference final {
-        static constexpr std::u8string_view id{u8"BT-15"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::DocumentReference type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct DespatchDocumentReference final {
-        static constexpr std::u8string_view id{u8"BT-16"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::DocumentReference type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct OriginatorDocumentReference final {
-        static constexpr std::u8string_view id{u8"BT-17"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::DocumentReference type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct AdditionalDocumentReferenceIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-18"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::DocumentReference type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct AdditionalDocumentReferenceSchemaId final {
-        static constexpr std::u8string_view id{u8"BT-18-1"};
-        static constexpr std::u8string_view attribute{u8"schemeID"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct AccountingCost final {
-        static constexpr std::u8string_view id{u8"BT-19"};
-        static constexpr std::u8string_view path{u8"cbc:AccountingCost"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct PaymentTerms final {
-        static constexpr std::u8string_view id{u8"BT-20"};
-        static constexpr std::u8string_view path{u8"cbc:Note"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct InvoiceNoteSubjectCode final {
-        static constexpr std::u8string_view id{u8"BT-21"};
-        static constexpr std::u8string_view path{u8"cbc:Note"};
-        XDataTypes::Code type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct InvoiceNote final {
-        static constexpr std::u8string_view id{u8"BT-22"};
-        static constexpr std::u8string_view path{u8"cbc:Note"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct BusinessProcessType final {
-        static constexpr std::u8string_view id{u8"BT-23"};
-        static constexpr std::u8string_view path{u8"cbc:ProfileID"};
-        XDataTypes::Identifier type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct SpecificationIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-24"};
-        static constexpr std::u8string_view path{u8"cbc:CustomizationID"};
-        XDataTypes::Identifier type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct InvoiceDocumentReference final {
-        static constexpr std::u8string_view id{u8"BT-25"};
-        static constexpr std::u8string_view outerPath{u8"cac:InvoiceDocumentReference"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::DocumentReference type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct InvoiceDocumentReferenceIssueDate final {
-        static constexpr std::u8string_view id{u8"BT-26"};
-        static constexpr std::u8string_view path{u8"cbc:IssueDate"};
-        XDataTypes::Date type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct SellerName final {
-        static constexpr std::u8string_view id{u8"BT-27"};
-        static constexpr std::u8string_view outerPath{u8"cac:PartyLegalEntity"};
-        static constexpr std::u8string_view path{u8"cbc:RegistrationName"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct SellerTradingName final {
-        static constexpr std::u8string_view id{u8"BT-28"};
-        static constexpr std::u8string_view outerPath{u8"cac:PartyName"};
-        static constexpr std::u8string_view path{u8"cbc:Name"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct SellerIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-29"};
-        static constexpr std::u8string_view outerPath{u8"cac:PartyIdentification"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::Identifier type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct SellerIdentifierSchema final {
-        static constexpr std::u8string_view id{u8"BT-29-1"};
-        static constexpr std::u8string_view attribute{u8"schemeID"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct SellerLegalIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-30"};
-        static constexpr std::u8string_view path{u8"cbc:CompanyID"};
-        XDataTypes::Identifier type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct SellerLegalIdentifierSchema final {
-        static constexpr std::u8string_view id{u8"BT-30-1"};
-        static constexpr std::u8string_view attribute{u8"schemeID"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct SellerVATIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-31"};
-        static constexpr std::u8string_view path{u8"cbc:CompanyID"};
-        XDataTypes::Identifier type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct SellerTaxRegistrationIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-32"};
-        static constexpr std::u8string_view path{u8"cbc:CompanyID"};
-        XDataTypes::Identifier type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct SellerAdditionalLegalInformation final {
-        static constexpr std::u8string_view id{u8"BT-33"};
-        static constexpr std::u8string_view path{u8"cbc:CompanyLegalForm"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct SellerElectronicAddress final {
-        static constexpr std::u8string_view id{u8"BT-34"};
-        static constexpr std::u8string_view path{u8"cbc:EndpointID"};
-        XDataTypes::Identifier type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct SellerElectronicAddressSchema final {
-        static constexpr std::u8string_view id{u8"BT-34-1"};
-        static constexpr std::u8string_view attribute{u8"schemeID"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct SellerPostalAddressStreetName final {
-        static constexpr std::u8string_view id{u8"BT-35"};
-        static constexpr std::u8string_view path{u8"cbc:StreetName"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct SellerPostalAddressAdditionalStreetName final {
-        static constexpr std::u8string_view id{u8"BT-36"};
-        static constexpr std::u8string_view path{u8"cbc:AdditionalStreetName"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct SellerPostalAddressAddressLine final {
-        static constexpr std::u8string_view id{u8"BT-36"};
-        static constexpr std::u8string_view path{u8"cbc:Line"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-
-    struct SellerPostalAddressCityName final {
-        static constexpr std::u8string_view id{u8"BT-37"};
-        static constexpr std::u8string_view path{u8"cbc:CityName"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct SellerPostalAddressPostalZone final {
-        static constexpr std::u8string_view id{u8"BT-38"};
-        static constexpr std::u8string_view path{u8"cbc:PostalZone"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct SellerPostalAddressCountrySubentity final {
-        static constexpr std::u8string_view id{u8"BT-39"};
-        static constexpr std::u8string_view path{u8"cbc:CountrySubentity"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct SellerPostalAddressCountryIdentificationCode final {
-        /*
-         * Ein Code, mit dem das Land bezeichnet wird.
-         * Anmerkung: Die Liste der zulässigen Länder ist bei der ISO 3166-1 „Codes for the representation of names of
-         * countries and their subdivisions“ erhältlich. Nur die Alpha-2-Darstellung darf verwendet werden.
-         */
-        static constexpr std::u8string_view id{u8"BT-40"};
-        static constexpr std::u8string_view outerPath{u8"cac:Country"};
-        static constexpr std::u8string_view path{u8"cbc:IdentificationCode"};
-        XDataTypes::Code type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct SellerContactName final {
-        static constexpr std::u8string_view id{u8"BT-41"};
-        static constexpr std::u8string_view path{u8"cbc:Name"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct SellerContactTelephone final {
-        static constexpr std::u8string_view id{u8"BT-42"};
-        static constexpr std::u8string_view path{u8"cbc:Telephone"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct SellerContactEMail final {
-        static constexpr std::u8string_view id{u8"BT-43"};
-        static constexpr std::u8string_view path{u8"cbc:ElectronicMail"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct BuyerName final {
-        static constexpr std::u8string_view id{u8"BT-44"};
-        static constexpr std::u8string_view outerPath{u8"cac:PartyLegalEntity"};
-        static constexpr std::u8string_view path{u8"cbc:RegistrationName"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct BuyerTradingName final {
-        static constexpr std::u8string_view id{u8"BT-45"};
-        static constexpr std::u8string_view outerPath{u8"cac:PartyName"};
-        static constexpr std::u8string_view path{u8"cbc:Name"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct BuyerIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-46"};
-        static constexpr std::u8string_view outerPath{u8"cac:PartyIdentification"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::Identifier type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct BuyerIdentifierSchema final {
-        static constexpr std::u8string_view id{u8"BT-46-1"};
-        static constexpr std::u8string_view attribute{u8"schemeID"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct BuyerLegalRegistrationIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-47"};
-        static constexpr std::u8string_view outerPath{u8"cbc:PartyLegalEntity"};
-        static constexpr std::u8string_view path{u8"cbc:CompanyID"};
-        XDataTypes::Identifier type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct BuyerLegalRegistrationIdentifierSchema final {
-        static constexpr std::u8string_view id{u8"BT-47-1"};
-        static constexpr std::u8string_view attribute{u8"schemeID"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct BuyerVATIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-48"};
-        static constexpr std::u8string_view outerPath{u8"cac:PartyTaxScheme"};
-        static constexpr std::u8string_view path{u8"cbc:CompanyID"};
-        XDataTypes::Identifier type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct BuyerElectronicAddress final {
-        static constexpr std::u8string_view id{u8"BT-49"};
-        static constexpr std::u8string_view path{u8"cbc:EndpointID"};
-        XDataTypes::Identifier type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct BuyerElectronicAddressSchema final {
-        static constexpr std::u8string_view id{u8"BT-49-1"};
-        static constexpr std::u8string_view attribute{u8"schemeID"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct BuyerAddressStreetName final {
-        static constexpr std::u8string_view id{u8"BT-50"};
-        static constexpr std::u8string_view path{u8"cbc:StreetName"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct BuyerAddressAdditionalStreetName final {
-        static constexpr std::u8string_view id{u8"BT-51"};
-        static constexpr std::u8string_view path{u8"cbc:AdditionalStreetName"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct BuyerAddressAdditionalAddressLine final {
-        static constexpr std::u8string_view id{u8"BT-163"};
-        static constexpr std::u8string_view path{u8"cbc:Line"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct BuyerAddressCityName final {
-        static constexpr std::u8string_view id{u8"BT-52"};
-        static constexpr std::u8string_view path{u8"cbc:CityName"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct BuyerAddressPostalZone final {
-        static constexpr std::u8string_view id{u8"BT-53"};
-        static constexpr std::u8string_view path{u8"cbc:PostalZone"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct BuyerAddressCountrySubentity final {
-        static constexpr std::u8string_view id{u8"BT-54"};
-        static constexpr std::u8string_view path{u8"cbc:CountrySubentity"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct BuyerAddressCountryIdentificationCode final {
-        static constexpr std::u8string_view id{u8"BT-55"};
-        static constexpr std::u8string_view outerPath{u8"cac:Country"};
-        static constexpr std::u8string_view path{u8"cbc:IdentificationCode"};
-        XDataTypes::Code type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct BuyerContact final {
-        static constexpr std::u8string_view id{u8"BT-56"};
-        static constexpr std::u8string_view path{u8"cbc:Name"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct BuyerContactTelephone final {
-        static constexpr std::u8string_view id{u8"BT-57"};
-        static constexpr std::u8string_view path{u8"cbc:Telephone"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct BuyerContactEMail final {
-        static constexpr std::u8string_view id{u8"BT-57"};
-        static constexpr std::u8string_view path{u8"cbc:ElectronicMail"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct PayeeName final {
-        static constexpr std::u8string_view id{u8"BT-59"};
-        static constexpr std::u8string_view outerPath{u8"cac:PartyName"};
-        static constexpr std::u8string_view path{u8"cbc:Name"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct PayeeIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-60"};
-        static constexpr std::u8string_view outerPath{u8"cac:PartyIdentification"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::Identifier type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct PayeeIdentifierSchema final {
-        static constexpr std::u8string_view id{u8"BT-60-1"};
-        static constexpr std::u8string_view attribute{u8"schemeID"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct PayeeLegalRegistrationIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-61"};
-        static constexpr std::u8string_view outerPath{u8"cac:PartyLegalEntity"};
-        static constexpr std::u8string_view path{u8"cbc:CompanyID"};
-        XDataTypes::Identifier type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct PayeeLegalRegistrationIdentifierSchema final {
-        static constexpr std::u8string_view id{u8"BT-61-1"};
-        static constexpr std::u8string_view attribute{u8"schemeID"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct SellerTaxRepresentative final {
-        static constexpr std::u8string_view id{u8"BT-62"};
-        static constexpr std::u8string_view outerPath{u8"cac:PartyName"};
-        static constexpr std::u8string_view path{u8"cbc:Name"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using TaxCurrencyCode = entry<Id<u8"BT-6">, Path<u8"cbc:TaxCurrencyCode">, XDataTypes::Code>;
+
+    using TaxPointDate = entry<Id<u8"BT-7">, Path<u8"cbc:TaxPointDate">, XDataTypes::Date>;
+
+    using InvoicePeriodDescriptionCode = entry<Id<u8"BT-8">, Path<u8"cbc:DescriptionCode">, PointDateCode>;
+
+    using DueDate = entry<Id<u8"BT-9">, Path<u8"cbc:DueDate">, XDataTypes::Date>;
+
+    using BuyerReference = entry<Id<u8"BT-10">, Path<u8"cbc:BuyerReference">, XDataTypes::Text>;
+
+    using ProjectReference = entry<Id<u8"BT-11">, OuterPath<u8"cac:ProjectReference">, Path<u8"cbc:ID">, XDataTypes::DocumentReference>;
+
+    using ContractDocumentReference = entry<Id<u8"BT-12">, OuterPath<u8"cac:ContractDocumentReference">, Path<u8"cbc:ID">, XDataTypes::DocumentReference>;
+
+    using OrderReference = entry<Id<u8"BT-13">, Path<u8"cbc:ID">, XDataTypes::DocumentReference>;
+
+    using OrderReferenceSalesOrderID = entry<Id<u8"BT-14">, Path<u8"cbc:SalesOrderID">, XDataTypes::DocumentReference>;
+
+    using ReceiptDocumentReference = entry<Id<u8"BT-15">, Path<u8"cbc:ID">, XDataTypes::DocumentReference>;
+
+    using DespatchDocumentReference = entry<Id<u8"BT-16">, Path<u8"cbc:ID">, XDataTypes::DocumentReference>;
+
+    using OriginatorDocumentReference = entry<Id<u8"BT-17">, Path<u8"cbc:ID">, XDataTypes::DocumentReference>;
+
+    using AdditionalDocumentReferenceIdentifier = entry<Id<u8"BT-18">, Path<u8"cbc:ID">, XDataTypes::DocumentReference>;
+
+    using AdditionalDocumentReferenceSchemaId = entry<Id<u8"BT-18-1">, Attribute<u8"schemeID">, XDataTypes::Text>;
+
+    using AccountingCost = entry<Id<u8"BT-19">, Path<u8"cbc:AccountingCost">, XDataTypes::Text>;
+
+    using PaymentTerms = entry<Id<u8"BT-20">, Path<u8"cbc:Note">, XDataTypes::Text>;
+
+    using InvoiceNoteSubjectCode = entry<Id<u8"BT-21">, Path<u8"cbc:Note">, XDataTypes::Code>;
+
+    using InvoiceNote = entry<Id<u8"BT-22">, Path<u8"cbc:Note">, XDataTypes::Text>;
+
+    using BusinessProcessType = entry<Id<u8"BT-23">, Path<u8"cbc:ProfileID">, XDataTypes::Identifier>;
+
+    using SpecificationIdentifier = entry<Id<u8"BT-24">, Path<u8"cbc:CustomizationID">, XDataTypes::Identifier>;
+
+    using InvoiceDocumentReference = entry<Id<u8"BT-25">, OuterPath<u8"cac:InvoiceDocumentReference">, Path<u8"cbc:ID">, XDataTypes::DocumentReference>;
+
+    using InvoiceDocumentReferenceIssueDate = entry<Id<u8"BT-26">, Path<u8"cbc:IssueDate">, XDataTypes::Date>;
+
+    using SellerName = entry<Id<u8"BT-27">, OuterPath<u8"cac:PartyLegalEntity">, Path<u8"cbc:RegistrationName">, XDataTypes::Text>;
+
+    using SellerTradingName = entry<Id<u8"BT-28">, OuterPath<u8"cac:PartyName">, Path<u8"cbc:Name">, XDataTypes::Text>;
+
+    using SellerIdentifier = entry<Id<u8"BT-29">, OuterPath<u8"cac:PartyIdentification">, Path<u8"cbc:ID">, XDataTypes::Identifier>;
+
+    using SellerIdentifierSchema = entry<Id<u8"BT-29-1">, Attribute<u8"schemeID">, XDataTypes::Text>;
+
+    using SellerLegalIdentifier = entry<Id<u8"BT-30">, Path<u8"cbc:CompanyID">, XDataTypes::Identifier>;
+
+    using SellerLegalIdentifierSchema = entry<Id<u8"BT-30-1">, Attribute<u8"schemeID">, XDataTypes::Text>;
+
+    using SellerVATIdentifier = entry<Id<u8"BT-31">, Path<u8"cbc:CompanyID">, XDataTypes::Identifier>;
+
+    using SellerTaxRegistrationIdentifier = entry<Id<u8"BT-32">, Path<u8"cbc:CompanyID">, XDataTypes::Identifier>;
+
+    using SellerAdditionalLegalInformation = entry<Id<u8"BT-33">, Path<u8"cbc:CompanyLegalForm">, XDataTypes::Text>;
+
+    using SellerElectronicAddress = entry<Id<u8"BT-34">, Path<u8"cbc:EndpointID">, XDataTypes::Identifier>;
+
+    using SellerElectronicAddressSchema = entry<Id<u8"BT-34-1">, Attribute<u8"schemeID">, XDataTypes::Text>;
+
+    using SellerPostalAddressStreetName = entry<Id<u8"BT-35">, Path<u8"cbc:StreetName">, XDataTypes::Text>;
+
+    using SellerPostalAddressAdditionalStreetName = entry<Id<u8"BT-36">, Path<u8"cbc:AdditionalStreetName">, XDataTypes::Text>;
+
+    using SellerPostalAddressAddressLine = entry<Id<u8"BT-36">, Path<u8"cbc:Line">, XDataTypes::Text>;
+
+    using SellerPostalAddressCityName = entry<Id<u8"BT-37">, Path<u8"cbc:CityName">, XDataTypes::Text>;
+
+    using SellerPostalAddressPostalZone = entry<Id<u8"BT-38">, Path<u8"cbc:PostalZone">, XDataTypes::Text>;
+
+    using SellerPostalAddressCountrySubentity = entry<Id<u8"BT-39">, Path<u8"cbc:CountrySubentity">, XDataTypes::Text>;
+
+    /*
+    * Ein Code, mit dem das Land bezeichnet wird.
+    * Anmerkung: Die Liste der zulässigen Länder ist bei der ISO 3166-1 „Codes for the representation of names of
+    * countries and their subdivisions“ erhältlich. Nur die Alpha-2-Darstellung darf verwendet werden.
+    */
+    using SellerPostalAddressCountryIdentificationCode = entry<Id<u8"BT-40">, OuterPath<u8"cac:Country">, Path<u8"cbc:IdentificationCode">, XDataTypes::Code>;
+
+    using SellerContactName = entry<Id<u8"BT-41">, Path<u8"cbc:Name">, XDataTypes::Text>;
+
+    using SellerContactTelephone = entry<Id<u8"BT-42">, Path<u8"cbc:Telephone">, XDataTypes::Text>;
+
+    using SellerContactEMail = entry<Id<u8"BT-43">, Path<u8"cbc:ElectronicMail">, XDataTypes::Text>;
+
+    using BuyerName = entry<Id<u8"BT-44">, OuterPath<u8"cac:PartyLegalEntity">, Path<u8"cbc:RegistrationName">, XDataTypes::Text>;
+
+    using BuyerTradingName = entry<Id<u8"BT-45">, OuterPath<u8"cac:PartyName">, Path<u8"cbc:Name">, XDataTypes::Text>;
+
+    using BuyerIdentifier = entry<Id<u8"BT-46">, OuterPath<u8"cac:PartyIdentification">, Path<u8"cbc:ID">, XDataTypes::Identifier>;
+
+    using BuyerIdentifierSchema = entry<Id<u8"BT-46-1">, Attribute<u8"schemeID">, XDataTypes::Text>;
+
+    using BuyerLegalRegistrationIdentifier = entry<Id<u8"BT-47">, OuterPath<u8"cbc:PartyLegalEntity">, Path<u8"cbc:CompanyID">, XDataTypes::Identifier>;
+
+    using BuyerLegalRegistrationIdentifierSchema = entry<Id<u8"BT-47-1">, Attribute<u8"schemeID">, XDataTypes::Text>;
+
+    using BuyerVATIdentifier = entry<Id<u8"BT-48">, OuterPath<u8"cac:PartyTaxScheme">, Path<u8"cbc:CompanyID">, XDataTypes::Identifier>;
+
+    using BuyerElectronicAddress = entry<Id<u8"BT-49">, Path<u8"cbc:EndpointID">, XDataTypes::Identifier>;
+
+    using BuyerElectronicAddressSchema = entry<Id<u8"BT-49-1">, Attribute<u8"schemeID">, XDataTypes::Text>;
+
+    using BuyerAddressStreetName = entry<Id<u8"BT-50">, Path<u8"cbc:StreetName">, XDataTypes::Text>;
+
+    using BuyerAddressAdditionalStreetName = entry<Id<u8"BT-51">, Path<u8"cbc:AdditionalStreetName">, XDataTypes::Text>;
+
+    using BuyerAddressAdditionalAddressLine = entry<Id<u8"BT-163">, Path<u8"cbc:Line">, XDataTypes::Text>;
+
+    using BuyerAddressCityName = entry<Id<u8"BT-52">, Path<u8"cbc:CityName">, XDataTypes::Text>;
+
+    using BuyerAddressPostalZone = entry<Id<u8"BT-53">, Path<u8"cbc:PostalZone">, XDataTypes::Text>;
+
+    using BuyerAddressCountrySubentity = entry<Id<u8"BT-54">, Path<u8"cbc:CountrySubentity">, XDataTypes::Text>;
+
+    using BuyerAddressCountryIdentificationCode = entry<Id<u8"BT-55">, OuterPath<u8"cac:Country">, Path<u8"cbc:IdentificationCode">, XDataTypes::Code>;
+
+    using BuyerContact = entry<Id<u8"BT-56">, Path<u8"cbc:Name">, XDataTypes::Text>;
+
+    using BuyerContactTelephone = entry<Id<u8"BT-57">, Path<u8"cbc:Telephone">, XDataTypes::Text>;
+
+    using BuyerContactEMail = entry<Id<u8"BT-58">, Path<u8"cbc:ElectronicMail">, XDataTypes::Text>;
+
+    using PayeeName = entry<Id<u8"BT-59">, OuterPath<u8"cac:PartyName">, Path<u8"cbc:Name">, XDataTypes::Text>;
+
+    using PayeeIdentifier = entry<Id<u8"BT-60">, OuterPath<u8"cac:PartyIdentification">, Path<u8"cbc:ID">, XDataTypes::Identifier>;
+
+    using PayeeIdentifierSchema = entry<Id<u8"BT-60-1">, Attribute<u8"schemeID">, XDataTypes::Text>;
+
+    using PayeeLegalRegistrationIdentifier = entry<Id<u8"BT-61">, OuterPath<u8"cac:PartyLegalEntity">, Path<u8"cbc:CompanyID">, XDataTypes::Identifier>;
+
+    using PayeeLegalRegistrationIdentifierSchema = entry<Id<u8"BT-61-1">, Attribute<u8"schemeID">, XDataTypes::Text>;
+
+    using SellerTaxRepresentative = entry<Id<u8"BT-62">, OuterPath<u8"cac:PartyName">, Path<u8"cbc:Name">, XDataTypes::Text>;
+
 
     struct SellerTaxRepresentativeVATIdentifier final {
         SellerTaxRepresentativeVATIdentifier() = default;
@@ -823,325 +311,69 @@ namespace XMapping {
         }
     };
 
-    struct TaxRepresentativePostalAddressStreetName final {
-        static constexpr std::u8string_view id{u8"BT-64"};
-        static constexpr std::u8string_view path{u8"cbc:StreetName"};
-        XDataTypes::Text type;
+    using TaxRepresentativePostalAddressStreetName = entry<Id<u8"BT-64">, Path<u8"cbc:StreetName">, XDataTypes::Text>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using TaxRepresentativePostalAddressAdditionalStreetName = entry<Id<u8"BT-65">, Path<u8"cbc:AdditionalStreetName">, XDataTypes::Text>;
 
-    struct TaxRepresentativePostalAddressAdditionalStreetName final {
-        static constexpr std::u8string_view id{u8"BT-65"};
-        static constexpr std::u8string_view path{u8"cbc:AdditionalStreetName"};
-        XDataTypes::Text type;
+    using TaxRepresentativePostalAddressAddressLine = entry<Id<u8"BT-164">, Path<u8"cbc:Line">, XDataTypes::Text>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using TaxRepresentativePostalAddressCity = entry<Id<u8"BT-66">, Path<u8"cbc:CityName">, XDataTypes::Text>;
 
-    struct TaxRepresentativePostalAddressAddressLine final {
-        static constexpr std::u8string_view id{u8"BT-164"};
-        static constexpr std::u8string_view path{u8"cbc:Line"};
-        XDataTypes::Text type;
+    using TaxRepresentativePostalAddressPostCode = entry<Id<u8"BT-67">, Path<u8"cbc:PostalZone">, XDataTypes::Text>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using TaxRepresentativePostalAddressCountrySubentity = entry<Id<u8"BT-68">, Path<u8"cbc:CountrySubentity">, XDataTypes::Text>;
 
-    struct TaxRepresentativePostalAddressCity final {
-        static constexpr std::u8string_view id{u8"BT-66"};
-        static constexpr std::u8string_view path{u8"cbc:CityName"};
-        XDataTypes::Text type;
+    using TaxRepresentativePostalAddressCountryIdentificationCode = entry<Id<u8"BT-69">, Path<u8"cbc:IdentificationCode">, XDataTypes::Code>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using DeliveryName = entry<Id<u8"BT-70">, Path<u8"cbc:Name">, XDataTypes::Text>;
 
-    struct TaxRepresentativePostalAddressPostCode final {
-        static constexpr std::u8string_view id{u8"BT-67"};
-        static constexpr std::u8string_view path{u8"cbc:PostalZone"};
-        XDataTypes::Text type;
+    using DeliveryIdentifier = entry<Id<u8"BT-71">, Path<u8"cbc:ID">, XDataTypes::Identifier>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using DeliveryIdentifierSchema = entry<Id<u8"BT-71-1">, Attribute<u8"schemeID">, XDataTypes::Text>;
 
-    struct TaxRepresentativePostalAddressCountrySubentity final {
-        static constexpr std::u8string_view id{u8"BT-68"};
-        static constexpr std::u8string_view path{u8"cbc:CountrySubentity"};
-        XDataTypes::Text type;
+    using DeliveryDate = entry<Id<u8"BT-72">, Path<u8"cbc:ActualDeliveryDate">, XDataTypes::Date>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using InvoicePeriodStartDate = entry<Id<u8"BT-73">, Path<u8"cbc:StartDate">, XDataTypes::Date>;
 
-    struct TaxRepresentativePostalAddressCountryIdentificationCode final {
-        static constexpr std::u8string_view id{u8"BT-69"};
-        static constexpr std::u8string_view path{u8"cbc:IdentificationCode"};
-        XDataTypes::Code type;
+    using InvoicePeriodEndDate = entry<Id<u8"BT-74">, Path<u8"cbc:EndDate">, XDataTypes::Date>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using DeliveryLocationStreetName = entry<Id<u8"BT-75">, Path<u8"cbc:StreetName">, XDataTypes::Text>;
 
-    struct DeliveryName final {
-        static constexpr std::u8string_view id{u8"BT-70"};
-        static constexpr std::u8string_view path{u8"cbc:Name"};
-        XDataTypes::Text type;
+    using DeliveryLocationAdditionalStreetName = entry<Id<u8"BT-76">, Path<u8"cbc:AdditionalStreetName">, XDataTypes::Text>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using DeliveryLocationAdditionalAddressLine = entry<Id<u8"BT-165">, Path<u8"cbc:Line">, XDataTypes::Text>;
 
-    struct DeliveryIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-71"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::Identifier type;
+    using DeliveryLocationCityName = entry<Id<u8"BT-77">, Path<u8"cbc:CityName">, XDataTypes::Text>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using DeliveryLocationPostalZone = entry<Id<u8"BT-78">, Path<u8"cbc:PostalZone">, XDataTypes::Text>;
 
-    struct DeliveryIdentifierSchema final {
-        static constexpr std::u8string_view id{u8"BT-71-1"};
-        static constexpr std::u8string_view attribute{u8"schemeID"};
-        XDataTypes::Text type;
+    using DeliveryLocationCountrySubentity = entry<Id<u8"BT-79">, Path<u8"cbc:CountrySubentity">, XDataTypes::Text>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using DeliveryLocationCountryCode = entry<Id<u8"BT-80">, Path<u8"cbc:IdentificationCode">, XDataTypes::Code>;
 
-    struct DeliveryDate final {
-        static constexpr std::u8string_view id{u8"BT-72"};
-        static constexpr std::u8string_view path{u8"cbc:ActualDeliveryDate"};
-        XDataTypes::Date type;
+    using PaymentMeansCode = entry<Id<u8"BT-81">, Path<u8"cbc:PaymentMeansCode">, XDataTypes::Code>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using PaymentMeansText = entry<Id<u8"BT-82">, Path<u8"cbc:Name">, XDataTypes::Text>;
 
-    struct InvoicePeriodStartDate final {
-        static constexpr std::u8string_view id{u8"BT-73"};
-        static constexpr std::u8string_view path{u8"cbc:StartDate"};
-        XDataTypes::Date type;
+    using PaymentMeansPaymentId = entry<Id<u8"BT-83">, Path<u8"cbc:PaymentID">, XDataTypes::Text>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using PayeeFinancialAccountIdentifier = entry<Id<u8"BT-84">, Path<u8"cbc:ID">, XDataTypes::Identifier>;
 
-    struct InvoicePeriodEndDate final {
-        static constexpr std::u8string_view id{u8"BT-74"};
-        static constexpr std::u8string_view path{u8"cbc:EndDate"};
-        XDataTypes::Date type;
+    using PayeeFinancialAccountName = entry<Id<u8"BT-85">, Path<u8"cbc:Name">, XDataTypes::Text>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using PayeeFinancialAccountServiceProvider = entry<Id<u8"BT-86">, Path<u8"cbc:ID">, XDataTypes::Identifier>;
 
-    struct DeliveryLocationStreetName final {
-        static constexpr std::u8string_view id{u8"BT-75"};
-        static constexpr std::u8string_view path{u8"cbc:StreetName"};
-        XDataTypes::Text type;
+    using PaymentCardAccountPrimaryNumber = entry<Id<u8"BT-87">, Path<u8"cbc:PrimaryAccountNumberID">, XDataTypes::Text>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using PaymentCardAccountHolderName = entry<Id<u8"BT-88">, Path<u8"cbc:HolderName">, XDataTypes::Text>;
 
-    struct DeliveryLocationAdditionalStreetName final {
-        static constexpr std::u8string_view id{u8"BT-76"};
-        static constexpr std::u8string_view path{u8"cbc:AdditionalStreetName"};
-        XDataTypes::Text type;
+    using PaymentMandateIdentifier = entry<Id<u8"BT-89">, Path<u8"cbc:ID">, XDataTypes::Identifier>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using SellerBankAssignedCreditorIdentifier = entry<Id<u8"BT-90">, Path<u8"cbc:ID">, XDataTypes::Identifier>;
 
-    struct DeliveryLocationAdditionalAddressLine final {
-        static constexpr std::u8string_view id{u8"BT-165"};
-        static constexpr std::u8string_view path{u8"cbc:Line"};
-        XDataTypes::Text type;
+    using PayeeBankAssignedCreditorIdentifier = entry<Id<u8"BT-90">, Path<u8"cbc:ID">, XDataTypes::Identifier>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct DeliveryLocationCityName final {
-        static constexpr std::u8string_view id{u8"BT-77"};
-        static constexpr std::u8string_view path{u8"cbc:CityName"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct DeliveryLocationPostalZone final {
-        static constexpr std::u8string_view id{u8"BT-78"};
-        static constexpr std::u8string_view path{u8"cbc:PostalZone"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct DeliveryLocationCountrySubentity final {
-        static constexpr std::u8string_view id{u8"BT-79"};
-        static constexpr std::u8string_view path{u8"cbc:CountrySubentity"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct DeliveryLocationCountryCode final {
-        static constexpr std::u8string_view id{u8"BT-80"};
-        static constexpr std::u8string_view path{u8"cbc:IdentificationCode"};
-        XDataTypes::Code type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct PaymentMeansCode final {
-        static constexpr std::u8string_view id{u8"BT-81"};
-        static constexpr std::u8string_view path{u8"cbc:PaymentMeansCode"};
-        XDataTypes::Code type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct PaymentMeansText final {
-        static constexpr std::u8string_view id{u8"BT-82"};
-        static constexpr std::u8string_view path{u8"cbc:Name"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct PaymentMeansPaymentId final {
-        static constexpr std::u8string_view id{u8"BT-83"};
-        static constexpr std::u8string_view path{u8"cbc:PaymentID"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct PayeeFinancialAccountIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-84"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::Identifier type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct PayeeFinancialAccountName final {
-        static constexpr std::u8string_view id{u8"BT-85"};
-        static constexpr std::u8string_view path{u8"cbc:Name"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct PayeeFinancialAccountServiceProvider final {
-        static constexpr std::u8string_view id{u8"BT-86"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::Identifier type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct PaymentCardAccountPrimaryNumber final {
-        static constexpr std::u8string_view id{u8"BT-87"};
-        static constexpr std::u8string_view path{u8"cbc:PrimaryAccountNumberID"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct PaymentCardAccountHolderName final {
-        static constexpr std::u8string_view id{u8"BT-88"};
-        static constexpr std::u8string_view path{u8"cbc:HolderName"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct PaymentMandateIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-89"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::Identifier type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct SellerBankAssignedCreditorIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-90"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::Identifier type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct PayeeBankAssignedCreditorIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-90"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::Identifier type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct PaymentDebitAccountIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-91"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::Identifier type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using PaymentDebitAccountIdentifier = entry<Id<u8"BT-91">, Path<u8"cbc:ID">, XDataTypes::Identifier>;
 
     struct AllowanceChargeAmount final {
         static constexpr std::u8string_view id{u8"BT-92"};
@@ -1154,6 +386,7 @@ namespace XMapping {
         }
     };
 
+
     struct AllowanceChargeBaseAmount final {
         static constexpr std::u8string_view id{u8"BT-93"};
         static constexpr std::u8string_view path{u8"cbc:BaseAmount"};
@@ -1165,15 +398,8 @@ namespace XMapping {
         }
     };
 
-    struct AllowanceChargeMultiplier final {
-        static constexpr std::u8string_view id{u8"BT-94"};
-        static constexpr std::u8string_view path{u8"cbc:MultiplierFactorNumeric"};
-        XDataTypes::Percentage type;
 
-        [[nodiscard]] bool isValid() const {
-            return true;
-        }
-    };
+    using AllowanceChargeMultiplier = entry<Id<u8"BT-94">, Path<u8"cbc:MultiplierFactorNumeric">, XDataTypes::Percentage>;
 
     struct AllowanceChargeTaxCategory final {
         static constexpr std::u8string_view id{u8"BT-95"};
@@ -1185,35 +411,11 @@ namespace XMapping {
         }
     };
 
-    struct AllowanceChargeTaxCategoryPercentage final {
-        static constexpr std::u8string_view id{u8"BT-96"};
-        static constexpr std::u8string_view path{u8"cbc:Percent"};
-        XDataTypes::Percentage type;
+    using AllowanceChargeTaxCategoryPercentage = entry<Id<u8"BT-96">, Path<u8"cbc:Percent">, XDataTypes::Percentage>;
 
-        [[nodiscard]] bool isValid() const {
-            return true;
-        }
-    };
+    using AllowanceChargeReason = entry<Id<u8"BT-97">, Path<u8"cbc:AllowanceChargeReason">, XDataTypes::Text>;
 
-    struct AllowanceChargeReason final {
-        static constexpr std::u8string_view id{u8"BT-97"};
-        static constexpr std::u8string_view path{u8"cbc:AllowanceChargeReason"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct AllowanceChargeReasonCode final {
-        static constexpr std::u8string_view id{u8"BT-98"};
-        static constexpr std::u8string_view path{u8"cbc:AllowanceChargeReason"};
-        XDataTypes::Code type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using AllowanceChargeReasonCode = entry<Id<u8"BT-98">, Path<u8"cbc:AllowanceChargeReason">, XDataTypes::Code>;
 
     struct DocLevelAllowanceChargeAmount final {
         static constexpr std::u8string_view id{u8"BT-99"};
@@ -1237,55 +439,15 @@ namespace XMapping {
         }
     };
 
-    struct DocLevelAllowanceChargePercentage final {
-        static constexpr std::u8string_view id{u8"BT-101"};
-        static constexpr std::u8string_view path{u8"cbc:MultiplierFactorNumeric"};
-        XDataTypes::Percentage type;
+    using DocLevelAllowanceChargePercentage = entry<Id<u8"BT-101">, Path<u8"cbc:MultiplierFactorNumeric">, XDataTypes::Percentage>;
 
-        [[nodiscard]] bool isValid() const {
-            return true;
-        }
-    };
+    using DocLevelAllowanceChargeTaxCategory = entry<Id<u8"BT-102">, Path<u8"cbc:ID">, VATCategory>;
 
-    struct DocLevelAllowanceChargeTaxCategory final {
-        static constexpr std::u8string_view id{u8"BT-102"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        VATCategory type;
+    using DocLevelAllowanceChargeTaxRate = entry<Id<u8"BT-103">, Path<u8"cbc:Percent">, XDataTypes::Percentage>;
 
-        [[nodiscard]] bool isValid() const {
-            return true;
-        }
-    };
+    using DocLevelAllowanceChargeReason = entry<Id<u8"BT-104">, Path<u8"cbc:AllowanceChargeReason">, XDataTypes::Code>;
 
-    struct DocLevelAllowanceChargeTaxRate final {
-        static constexpr std::u8string_view id{u8"BT-103"};
-        static constexpr std::u8string_view path{u8"cbc:Percent"};
-        XDataTypes::Percentage type;
-
-        [[nodiscard]] bool isValid() const {
-            return true;
-        }
-    };
-
-    struct DocLevelAllowanceChargeReason final {
-        static constexpr std::u8string_view id{u8"BT-104"};
-        static constexpr std::u8string_view path{u8"cbc:AllowanceChargeReason"};
-        XDataTypes::Code type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct DocLevelAllowanceChargeReasonCode final {
-        static constexpr std::u8string_view id{u8"BT-105"};
-        static constexpr std::u8string_view path{u8"cbc:AllowanceChargeReasonCode"};
-        XDataTypes::Code type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using DocLevelAllowanceChargeReasonCode = entry<Id<u8"BT-105">, Path<u8"cbc:AllowanceChargeReasonCode">, XDataTypes::Code>;
 
     struct LegalMonetaryTotalNetAmount final {
         static constexpr std::u8string_view id{u8"BT-106"};
@@ -1429,155 +591,35 @@ namespace XMapping {
         }
     };
 
-    struct VATCategoryRate final {
-        static constexpr std::u8string_view id{u8"BT-119"};
-        static constexpr std::u8string_view path{u8"cbc:Percent"};
-        XDataTypes::Percentage type;
+    using VATCategoryRate = entry<Id<u8"BT-119">, Path<u8"cbc:Percent">, XDataTypes::Percentage>;
 
-        [[nodiscard]] bool isValid() const {
-            return true;
-        }
-    };
+    using VATExemptionReason = entry<Id<u8"BT-120">, Path<u8"cbc:TaxExemptionReason">, XDataTypes::Text>;
 
-    struct VATExemptionReason final {
-        static constexpr std::u8string_view id{u8"BT-120"};
-        static constexpr std::u8string_view path{u8"cbc:TaxExemptionReason"};
-        XDataTypes::Text type;
+    using VATExemptionReasonCode = entry<Id<u8"BT-121">, Path<u8"cbc:TaxExemptionReasonCode">, XDataTypes::Code>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using SupportingDocumentReferenceIdentifier = entry<Id<u8"BT-122">, Path<u8"cbc:ID">, XDataTypes::DocumentReference>;
 
-    struct VATExemptionReasonCode final {
-        static constexpr std::u8string_view id{u8"BT-121"};
-        static constexpr std::u8string_view path{u8"cbc:TaxExemptionReasonCode"};
-        XDataTypes::Code type;
+    using AdditionalDocumentReferenceDescription = entry<Id<u8"BT-123">, Path<u8"cbc:DocumentDescription">, XDataTypes::Text>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using AdditionalDocumentExternalReference = entry<Id<u8"BT-124">, Path<u8"cbc:URI">, XDataTypes::Text>;
 
-    struct SupportingDocumentReferenceIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-122"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::DocumentReference type;
+    using AdditionalDocumentAttached = entry<Id<u8"BT-125">, Path<u8"cbc:EmbeddedDocumentBinaryObject">, XDataTypes::BinaryObject>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using AdditionalDocumentAttachedMimeCode = entry<Id<u8"BT-125-1">, Attribute<u8"mimeCode">, XDataTypes::Text>;
 
-    struct AdditionalDocumentReferenceDescription final {
-        static constexpr std::u8string_view id{u8"BT-123"};
-        static constexpr std::u8string_view path{u8"cbc:DocumentDescription"};
-        XDataTypes::Text type;
+    using AdditionalDocumentAttachedFilename = entry<Id<u8"BT-125-1">, Attribute<u8"filename">, XDataTypes::Text>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using InvoiceLineIdentifier = entry<Id<u8"BT-126">, Path<u8"cbc:ID">, XDataTypes::Identifier>;
 
-    struct AdditionalDocumentExternalReference final {
-        static constexpr std::u8string_view id{u8"BT-124"};
-        static constexpr std::u8string_view path{u8"cbc:URI"};
-        XDataTypes::Text type;
+    using InvoiceLineNote = entry<Id<u8"BT-127">, Path<u8"cbc:Note">, XDataTypes::Text>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using InvoiceLineObjectIdentifier = entry<Id<u8"BT-128">, Path<u8"cbc:ID">, XDataTypes::Identifier>;
 
-    struct AdditionalDocumentAttached final {
-        static constexpr std::u8string_view id{u8"BT-125"};
-        static constexpr std::u8string_view path{u8"cbc:EmbeddedDocumentBinaryObject"};
-        XDataTypes::BinaryObject type;
+    using InvoiceLineObjectIdentifierSchema = entry<Id<u8"BT-128-1">, Attribute<u8"schemeID">, XDataTypes::Text>;
 
-        [[nodiscard]] bool isValid() const {
-            return true;
-        }
-    };
+    using InvoiceLineQuantity = entry<Id<u8"BT-129">, Path<u8"cbc:InvoicedQuantity">, XDataTypes::Quantity>;
 
-    struct AdditionalDocumentAttachedMimeCode final {
-        static constexpr std::u8string_view id{u8"BT-125-1"};
-        static constexpr std::u8string_view attribute{u8"mimeCode"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct AdditionalDocumentAttachedFilename final {
-        static constexpr std::u8string_view id{u8"BT-125-1"};
-        static constexpr std::u8string_view attribute{u8"filename"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct InvoiceLineIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-126"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::Identifier type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct InvoiceLineNote final {
-        static constexpr std::u8string_view id{u8"BT-127"};
-        static constexpr std::u8string_view path{u8"cbc:Note"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct InvoiceLineObjectIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-128"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::Identifier type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct InvoiceLineObjectIdentifierSchema final {
-        static constexpr std::u8string_view id{u8"BT-128-1"};
-        static constexpr std::u8string_view attribute{u8"schemeID"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct InvoiceLineQuantity final {
-        static constexpr std::u8string_view id{u8"BT-129"};
-        static constexpr std::u8string_view path{u8"cbc:InvoicedQuantity"};
-        XDataTypes::Quantity type;
-
-        [[nodiscard]] bool isValid() const {
-            return true;
-        }
-    };
-
-    struct InvoiceLineQuantityUnit final {
-        static constexpr std::u8string_view id{u8"BT-130"};
-        static constexpr std::u8string_view attribute{u8"unitCode"};
-        XDataTypes::Code type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using InvoiceLineQuantityUnit = entry<Id<u8"BT-130">, Attribute<u8"unitCode">, XDataTypes::Code>;
 
     struct InvoiceLineNetAmount final {
         static constexpr std::u8string_view id{u8"BT-131"};
@@ -1590,45 +632,13 @@ namespace XMapping {
         }
     };
 
-    struct InvoiceLineOrderReference final {
-        static constexpr std::u8string_view id{u8"BT-132"};
-        static constexpr std::u8string_view path{u8"cbc:LineID"};
-        XDataTypes::DocumentReference type;
+    using InvoiceLineOrderReference = entry<Id<u8"BT-132">, Path<u8"cbc:LineID">, XDataTypes::DocumentReference>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using InvoiceLineAccountingCost = entry<Id<u8"BT-133">, Path<u8"cbc:AccountingCost">, XDataTypes::Text>;
 
-    struct InvoiceLineAccountingCost final {
-        static constexpr std::u8string_view id{u8"BT-133"};
-        static constexpr std::u8string_view path{u8"cbc:AccountingCost"};
-        XDataTypes::Text type;
+    using InvoiceLinePeriodStartDate = entry<Id<u8"BT-134">, Path<u8"cbc:StartDate">, XDataTypes::Date>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct InvoiceLinePeriodStartDate final {
-        static constexpr std::u8string_view id{u8"BT-134"};
-        static constexpr std::u8string_view path{u8"cbc:StartDate"};
-        XDataTypes::Date type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct InvoiceLinePeriodEndDate final {
-        static constexpr std::u8string_view id{u8"BT-135"};
-        static constexpr std::u8string_view path{u8"cbc:EndDate"};
-        XDataTypes::Date type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using InvoiceLinePeriodEndDate = entry<Id<u8"BT-135">, Path<u8"cbc:EndDate">, XDataTypes::Date>;
 
     struct InvoiceLineAllowanceAmount final {
         static constexpr std::u8string_view id{u8"BT-136"};
@@ -1652,35 +662,11 @@ namespace XMapping {
         }
     };
 
-    struct InvoiceLineAllowancePercentage final {
-        static constexpr std::u8string_view id{u8"BT-138"};
-        static constexpr std::u8string_view path{u8"cbc:MultiplierFactorNumeric"};
-        XDataTypes::Percentage type;
+    using InvoiceLineAllowancePercentage = entry<Id<u8"BT-138">, Path<u8"cbc:MultiplierFactorNumeric">, XDataTypes::Percentage>;
 
-        [[nodiscard]] bool isValid() const {
-            return true;
-        }
-    };
+    using InvoiceLineAllowanceReason = entry<Id<u8"BT-139">, Path<u8"cbc:AllowanceChargeReason">, XDataTypes::Text>;
 
-    struct InvoiceLineAllowanceReason final {
-        static constexpr std::u8string_view id{u8"BT-139"};
-        static constexpr std::u8string_view path{u8"cbc:AllowanceChargeReason"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct InvoiceLineAllowanceReasonCode final {
-        static constexpr std::u8string_view id{u8"BT-140"};
-        static constexpr std::u8string_view path{u8"cbc:AllowanceChargeReasonCode"};
-        XDataTypes::Code type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using InvoiceLineAllowanceReasonCode = entry<Id<u8"BT-140">, Path<u8"cbc:AllowanceChargeReasonCode">, XDataTypes::Code>;
 
     struct InvoiceLineChargeAmount final {
         static constexpr std::u8string_view id{u8"BT-141"};
@@ -1704,35 +690,11 @@ namespace XMapping {
         }
     };
 
-    struct InvoiceLineChargePercentage final {
-        static constexpr std::u8string_view id{u8"BT-143"};
-        static constexpr std::u8string_view path{u8"cbc:MultiplierFactorNumeric"};
-        XDataTypes::Percentage type;
+    using InvoiceLineChargePercentage = entry<Id<u8"BT-143">, Path<u8"cbc:MultiplierFactorNumeric">, XDataTypes::Percentage>;
 
-        [[nodiscard]] bool isValid() const {
-            return true;
-        }
-    };
+    using InvoiceLineChargeReason = entry<Id<u8"BT-144">, Path<u8"cbc:AllowanceChargeReason">, XDataTypes::Text>;
 
-    struct InvoiceLineChargeReason final {
-        static constexpr std::u8string_view id{u8"BT-144"};
-        static constexpr std::u8string_view path{u8"cbc:AllowanceChargeReason"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct InvoiceLineChargeReasonCode final {
-        static constexpr std::u8string_view id{u8"BT-145"};
-        static constexpr std::u8string_view path{u8"cbc:AllowanceChargeReasonCode"};
-        XDataTypes::Code type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using InvoiceLineChargeReasonCode = entry<Id<u8"BT-145">, Path<u8"cbc:AllowanceChargeReasonCode">, XDataTypes::Code>;
 
     struct ItemNetPrice final {
         static constexpr std::u8string_view id{u8"BT-146"};
@@ -1767,25 +729,9 @@ namespace XMapping {
         }
     };
 
-    struct ItemBaseQuantity final {
-        static constexpr std::u8string_view id{u8"BT-149"};
-        static constexpr std::u8string_view path{u8"cbc:BaseQuantity"};
-        XDataTypes::Quantity type;
+    using ItemBaseQuantity = entry<Id<u8"BT-149">, Path<u8"cbc:BaseQuantity">, XDataTypes::Quantity>;
 
-        [[nodiscard]] bool isValid() const {
-            return true;
-        }
-    };
-
-    struct ItemBaseQuantityCode final {
-        static constexpr std::u8string_view id{u8"BT-150"};
-        static constexpr std::u8string_view attribute{u8"unitCode"};
-        XDataTypes::Code type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using ItemBaseQuantityCode = entry<Id<u8"BT-150">, Attribute<u8"unitCode">, XDataTypes::Code>;
 
     struct ItemVATCategoryCode final {
         static constexpr std::u8string_view id{u8"BT-151"};
@@ -1797,135 +743,32 @@ namespace XMapping {
         }
     };
 
-    struct ItemVATRate final {
-        static constexpr std::u8string_view id{u8"BT-152"};
-        static constexpr std::u8string_view path{u8"cbc:Percent"};
-        XDataTypes::Percentage type;
+    using ItemVATRate = entry<Id<u8"BT-152">, Path<u8"cbc:Percent">, XDataTypes::Percentage>;
 
-        [[nodiscard]] bool isValid() const {
-            return true;
-        }
-    };
+    using ItemName = entry<Id<u8"BT-153">, Path<u8"cbc:Name">, XDataTypes::Text>;
 
-    struct ItemName final {
-        static constexpr std::u8string_view id{u8"BT-153"};
-        static constexpr std::u8string_view path{u8"cbc:Name"};
-        XDataTypes::Text type;
+    using ItemDescription = entry<Id<u8"BT-154">, Path<u8"cbc:Description">, XDataTypes::Text>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using ItemSellerIdentifier = entry<Id<u8"BT-155">, Path<u8"cbc:ID">, XDataTypes::Identifier>;
 
-    struct ItemDescription final {
-        static constexpr std::u8string_view id{u8"BT-154"};
-        static constexpr std::u8string_view path{u8"cbc:Description"};
-        XDataTypes::Text type;
+    using ItemBuyerIdentifier = entry<Id<u8"BT-156">, Path<u8"cbc:ID">, XDataTypes::Identifier>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using ItemStandardIdentifier = entry<Id<u8"BT-157">, Path<u8"cbc:ID">, XDataTypes::Identifier>;
 
-    struct ItemSellerIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-155"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::Identifier type;
+    using ItemStandardIdentifierSchema = entry<Id<u8"BT-157-1">, Path<u8"schemeID">, XDataTypes::Text>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using ItemClassificationIdentifier = entry<Id<u8"BT-158">, Path<u8"cbc:ItemClassificationCode">, XDataTypes::Identifier>;
 
-    struct ItemBuyerIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-156"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::Identifier type;
+    using ItemClassificationIdentifierSchema = entry<Id<u8"BT-158-1">, Attribute<u8"schemeID">, XDataTypes::Text>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using ItemClassificationIdentifierSchemaVersion = entry<Id<u8"BT-158-2">, Attribute<u8"listVersionID">, XDataTypes::Text>;
 
-    struct ItemStandardIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-157"};
-        static constexpr std::u8string_view path{u8"cbc:ID"};
-        XDataTypes::Identifier type;
+    using ItemOriginCountryCode = entry<Id<u8"BT-159">, Path<u8"cbc:IdentificationCode">, XDataTypes::Code>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
+    using ItemAttributeName = entry<Id<u8"BT-160">, Path<u8"cbc:Name">, XDataTypes::Text>;
 
-    struct ItemStandardIdentifierSchema final {
-        static constexpr std::u8string_view id{u8"BT-157-1"};
-        static constexpr std::u8string_view path{u8"schemeID"};
-        XDataTypes::Text type;
+    using ItemAttributeValue = entry<Id<u8"BT-161">, Path<u8"cbc:Value">, XDataTypes::Text>;
 
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct ItemClassificationIdentifier final {
-        static constexpr std::u8string_view id{u8"BT-158"};
-        static constexpr std::u8string_view path{u8"cbc:ItemClassificationCode"};
-        XDataTypes::Identifier type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct ItemClassificationIdentifierSchema final {
-        static constexpr std::u8string_view id{u8"BT-158-1"};
-        static constexpr std::u8string_view attribute{u8"schemeID"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct ItemClassificationIdentifierSchemaVersion final {
-        static constexpr std::u8string_view id{u8"BT-158-2"};
-        static constexpr std::u8string_view attribute{u8"listVersionID"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct ItemOriginCountryCode final {
-        static constexpr std::u8string_view id{u8"BT-159"};
-        static constexpr std::u8string_view path{u8"cbc:IdentificationCode"};
-        XDataTypes::Code type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct ItemAttributeName final {
-        static constexpr std::u8string_view id{u8"BT-160"};
-        static constexpr std::u8string_view path{u8"cbc:Name"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
-
-    struct ItemAttributeValue final {
-        static constexpr std::u8string_view id{u8"BT-161"};
-        static constexpr std::u8string_view path{u8"cbc:Value"};
-        XDataTypes::Text type;
-
-        [[nodiscard]] bool isValid() const {
-            return !type.content.empty();
-        }
-    };
 
     struct INVOICE_NOTE final {
         static constexpr std::u8string_view id{u8"BG-1"};

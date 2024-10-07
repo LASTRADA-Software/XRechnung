@@ -797,12 +797,6 @@ XmlSaxSerializer XmlWriter::serialize(const SellerBankAssignedCreditorIdentifier
 }
 
 
-XmlSaxSerializer XmlWriter::serialize(const PayeeBankAssignedCreditorIdentifier &obj) {
-    XmlSaxSerializer serializer{};
-    serializer.writeSingle({.tag = obj.path, .content = obj.type.content});
-    return serializer;
-}
-
 
 XmlSaxSerializer XmlWriter::serialize(const PaymentDebitAccountIdentifier &obj) {
     XmlSaxSerializer serializer{};
