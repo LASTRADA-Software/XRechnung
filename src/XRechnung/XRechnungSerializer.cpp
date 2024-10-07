@@ -2119,13 +2119,17 @@ std::u8string XmlWriter::serialize(const XRechnung::Invoice &invoice) {
     const auto invoiceTypeCode = invoice.getInvoiceTypeCode();
     if (invoiceTypeCode.isValid())
         serializer.write(serialize(invoiceTypeCode), indentaionLevel);
-    serializer.write(serialize(invoice.getInvoiceCurrencyCode()), indentaionLevel);
 
     const auto invoiceNote = invoice.getInvoiceNote();
     if (!invoiceNote.empty())
         for (const auto &element: invoiceNote) {
             serializer.write(serialize(element), indentaionLevel);
         }
+
+    if (const auto paymentTerms = invoice.getPaymentTerms())
+        serializer.write(serialize(paymentTerms.value()), indentaionLevel);
+
+    serializer.write(serialize(invoice.getInvoiceCurrencyCode()), indentaionLevel);
 
     const auto accountingCurrencyCode = invoice.getAccountingCurrencyCode();
     if (accountingCurrencyCode.isValid())
@@ -2153,8 +2157,6 @@ std::u8string XmlWriter::serialize(const XRechnung::Invoice &invoice) {
         serializer.write(serialize(invoicedObjectIdentifier.value(), {}), indentaionLevel);
     if (const auto buyerAccountingReference = invoice.getBuyerAccountingReference())
         serializer.write(serialize(buyerAccountingReference.value()), indentaionLevel);
-    if (const auto paymentTerms = invoice.getPaymentTerms())
-        serializer.write(serialize(paymentTerms.value()), indentaionLevel);
     if (const auto projectReference = invoice.getProjectReference())
         serializer.write(serialize(projectReference.value()), indentaionLevel);
 
