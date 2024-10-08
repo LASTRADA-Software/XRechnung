@@ -310,8 +310,6 @@ namespace XRechnung {
 
             XmlSaxSerializer serialize(const SellerBankAssignedCreditorIdentifier &obj);
 
-            XmlSaxSerializer serialize(const PayeeBankAssignedCreditorIdentifier &obj);
-
             XmlSaxSerializer serialize(const PaymentDebitAccountIdentifier &obj);
 
             XmlSaxSerializer serialize(const AllowanceChargeAmount &obj);
