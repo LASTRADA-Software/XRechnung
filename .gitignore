@@ -17,6 +17,8 @@ include/divisible/*
 .idea/*.xml
 
 build/**/*
+.cache
+.cache/**
 
 include/*
 lib/*

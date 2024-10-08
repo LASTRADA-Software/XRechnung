@@ -1,49 +1,58 @@
-  name: Validate generated XRechnung XML's
-  on: [push]
-  jobs:
-    validate:
-      runs-on: ubuntu-24.04
+name: Validate generated XRechnung XML's
 
-      steps:
-        - uses: actions/checkout@v4
-        - uses: actions/setup-java@v4
-          with:
-            distribution: 'temurin' # See 'Supported distributions' for available options
-            java-version: '21'
+on:
+  merge_group:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
-        - name: Install clang
-          run: |
-            wget https://apt.llvm.org/llvm.sh
-            chmod +x llvm.sh
-            sudo ./llvm.sh 18
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
 
-        - name: Install ninja
-          run: sudo apt-get install ninja-build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin' # See 'Supported distributions' for available options
+          java-version: '21'
 
-        - name: download validator
-          run: wget -O validator_1_5_0.zip https://github.com/itplr-kosit/validator/releases/download/v1.5.0/validator-1.5.0-distribution.zip
-        - name: download validation schema
-          run: wget https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/release-2024-06-20/validator-configuration-xrechnung_3.0.2_2024-06-20.zip
+      - name: Install clang
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 18
 
-        - name: extract validator
-          run: |
-            mkdir validator_1_5_0
-            unzip validator_1_5_0.zip -d validator_1_5_0
-        - name: extract validator configuration
-          run: |
-            mkdir validator-configuration-xrechnung_3.0.2_2024-06-20
-            unzip validator-configuration-xrechnung_3.0.2_2024-06-20.zip -d validator-configuration-xrechnung_3_0_2
+      - name: Install ninja
+        run: sudo apt-get install ninja-build
 
-        - name: run Catch2 tests
-          run: |
-            cmake --preset linux-clang-release
-            cmake --build --preset linux-clang-release
-            ctest --preset linux-clang-release -VV
+      - name: download validator
+        run: wget -O validator_1_5_0.zip https://github.com/itplr-kosit/validator/releases/download/v1.5.0/validator-1.5.0-distribution.zip
+      - name: download validation schema
+        run: wget https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/release-2024-06-20/validator-configuration-xrechnung_3.0.2_2024-06-20.zip
 
-        - name: copy report folder
-          run: cp -R out/build/linux-clang-release/src/reports reports
+      - name: extract validator
+        run: |
+          mkdir validator_1_5_0
+          unzip validator_1_5_0.zip -d validator_1_5_0
+      - name: extract validator configuration
+        run: |
+          mkdir validator-configuration-xrechnung_3.0.2_2024-06-20
+          unzip validator-configuration-xrechnung_3.0.2_2024-06-20.zip -d validator-configuration-xrechnung_3_0_2
 
-        - name: validate & check generated xml files
-          run: |
-            chmod +x validateGeneratedXmlFiles.sh
-            ./validateGeneratedXmlFiles.sh
+      - name: run Catch2 tests
+        run: |
+          cmake --preset linux-clang-release
+          cmake --build --preset linux-clang-release
+          ctest --preset linux-clang-release -VV
+
+      - name: copy report folder
+        run: cp -R out/build/linux-clang-release/src/reports reports
+
+      - name: validate & check generated xml files
+        run: |
+          chmod +x validateGeneratedXmlFiles.sh
+          ./validateGeneratedXmlFiles.sh
