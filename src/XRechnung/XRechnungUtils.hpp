@@ -40,22 +40,22 @@ namespace XRechnungUtils {
         };
 
         // compute length of the target UTF-16 string
-        auto const utf16SizeNeeded = MultiByteToWideChar(GetACP(), 0, str.data(), str.size(), nullptr, 0);
+        auto const utf16SizeNeeded = MultiByteToWideChar(GetACP(), 0, str.data(), static_cast<int>(str.size()), nullptr, 0);
 
         // Preallocate the target string
         std::wstring utf16(utf16SizeNeeded, 0);
 
         // Convert the source string to UTF-16
-        EnsureSuccess(MultiByteToWideChar(GetACP(), 0, str.data(), str.size(), utf16.data(), utf16SizeNeeded));
+        EnsureSuccess(MultiByteToWideChar(GetACP(), 0, str.data(), static_cast<int>(str.size()), utf16.data(), utf16SizeNeeded));
 
         // compute length of the target UTF-8 string
-        auto const utf8SizeNeeded = WideCharToMultiByte(CP_UTF8, 0, utf16.data(), utf16.size(), nullptr, 0, nullptr, nullptr);
+        auto const utf8SizeNeeded = WideCharToMultiByte(CP_UTF8, 0, utf16.data(), static_cast<int>(utf16.size()), nullptr, 0, nullptr, nullptr);
 
         // Preallocate the target string
         std::u8string utf8(utf8SizeNeeded, 0);
 
         // Convert the UTF-16 string to UTF-8
-        EnsureSuccess(WideCharToMultiByte(CP_UTF8, 0, utf16.data(), utf16.size(), reinterpret_cast<char *>(utf8.data()), utf8SizeNeeded, nullptr, nullptr));
+        EnsureSuccess(WideCharToMultiByte(CP_UTF8, 0, utf16.data(), static_cast<int>(utf16.size()), reinterpret_cast<char *>(utf8.data()), utf8SizeNeeded, nullptr, nullptr));
 
         return utf8;
 #else
